@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from '../../../locales/LanguageContext';
 import type { Karyawan } from './types';
 import { supabase } from '../../../lib/supabase/client';
@@ -230,6 +230,31 @@ function CardArtwork({
   </svg>`;
 }
 
+const EmployeeBatchRow = memo(function EmployeeBatchRow({
+  employee,
+  checked,
+  onToggle,
+}: {
+  employee: Employee;
+  checked: boolean;
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <label className="id-employee-row">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={() => onToggle(employee.id)}
+      />
+      <span className="id-avatar">{initials(employee.nama)}</span>
+      <span>
+        <b>{employee.nama}</b>
+        <small>{safeId(employee)} · {employee.jabatan || '-'}</small>
+      </span>
+    </label>
+  );
+});
+
 export default function IDCardModule({ employees, companyName, logoUrl }: Props) {
   const { t } = useTranslation();
   const eligibleEmployees = useMemo(() => employees.filter(e => e.status_aktif === true), [employees]);
@@ -238,6 +263,7 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
   const [query, setQuery] = useState('');
   const [selectedBatch, setSelectedBatch] = useState<string[]>([]);
   const [photoDataUrl, setPhotoDataUrl] = useState('');
+  const [photoEmployeeId, setPhotoEmployeeId] = useState('');
   const [token, setToken] = useState('');
   const [tokenLoading, setTokenLoading] = useState(false);
   const [actionError, setActionError] = useState('');
@@ -260,7 +286,12 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
     }
   });
   const cardRef = useRef<HTMLDivElement>(null);
+  // Desktop performance caches. Photo data URLs are reused when switching
+  // between employees instead of downloading/converting the same image again.
+  const photoCache = useRef(new Map<string, string>());
+  const photoAbortRef = useRef<AbortController | null>(null);
   const tokenCache = useRef(new Map<string, string>());
+
 
   const updateDesign = (patch: Partial<IDCardDesign>) => {
     setDesign(current => ({ ...current, ...patch }));
@@ -287,37 +318,84 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
 
   useEffect(() => {
     let cancelled = false;
-    const loadPhoto = async () => {
-      const photo = employee?.foto_url || employee?.foto || employee?.photo_url || '';
-      if (!photo) {
-        setPhotoDataUrl('');
-        return;
-      }
-      const toDataUrl = (blob: Blob) => new Promise<string>((resolve, reject) => {
+    const photo = employee?.foto_url || employee?.foto || employee?.photo_url || '';
+    const employeeId = employee?.id || '';
+
+    photoAbortRef.current?.abort();
+    photoAbortRef.current = null;
+
+    if (!employeeId || !photo) {
+      setPhotoDataUrl('');
+      setPhotoEmployeeId('');
+      return;
+    }
+
+    const cached = photoCache.current.get(photo);
+    if (cached) {
+      setPhotoDataUrl(cached);
+      setPhotoEmployeeId(employeeId);
+      return;
+    }
+
+    const toDataUrl = (blob: Blob) =>
+      new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onloadend = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Gagal membaca foto'));
+        reader.onloadend = () =>
+          typeof reader.result === 'string'
+            ? resolve(reader.result)
+            : reject(new Error('Gagal membaca foto'));
         reader.onerror = () => reject(new Error('Gagal membaca foto'));
         reader.readAsDataURL(blob);
       });
+
+    const loadPhoto = async () => {
+      const controller = new AbortController();
+      photoAbortRef.current = controller;
+
       try {
         let source = photo;
         const isRemote = /^(?:https?:\/\/|data:image\/|blob:|\/)/i.test(photo);
+
         if (!isRemote) {
-          const { data, error } = await supabase.storage.from('profile-photos').createSignedUrl(photo, 900);
-          if (error || !data?.signedUrl) throw error || new Error('Signed URL foto gagal');
+          const { data, error } = await supabase.storage
+            .from('profile-photos')
+            .createSignedUrl(photo, 900);
+          if (error || !data?.signedUrl) {
+            throw error || new Error('Signed URL foto gagal');
+          }
           source = data.signedUrl;
         }
-        const response = await fetch(source);
+
+        const response = await fetch(source, { signal: controller.signal });
         if (!response.ok) throw new Error('Fetch foto gagal');
+
         const dataUrl = await toDataUrl(await response.blob());
-        if (!cancelled) setPhotoDataUrl(dataUrl);
+        photoCache.current.set(photo, dataUrl);
+
+        if (!cancelled) {
+          setPhotoDataUrl(dataUrl);
+          setPhotoEmployeeId(employeeId);
+        }
       } catch (error) {
-        console.error('Fetch foto ID Card gagal:', error);
-        if (!cancelled) setPhotoDataUrl('');
+        if (!cancelled && !(error instanceof DOMException && error.name === 'AbortError')) {
+          console.error('Fetch foto ID Card gagal:', error);
+          setPhotoDataUrl('');
+          setPhotoEmployeeId(employeeId);
+        }
+      }
+
+    };
+
+    void loadPhoto();
+
+    return () => {
+      cancelled = true;
+      // Abort only the request that belongs to this selection.
+      if (photoAbortRef.current) {
+        photoAbortRef.current.abort();
+        photoAbortRef.current = null;
       }
     };
-    void loadPhoto();
-    return () => { cancelled = true; };
   }, [employee?.id, employee?.foto_url, employee?.foto, employee?.photo_url]);
 
   const ensureVerificationToken = async (employeeId: string) => {
@@ -336,10 +414,16 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
 
   useEffect(() => {
     let cancelled = false;
+    const currentEmployeeId = employee?.id || '';
+
+    // Never let the previous employee's QR token be rendered on the new card.
+    setToken('');
+    setTokenLoading(Boolean(employee));
+    setActionError('');
+
     const loadToken = async () => {
       if (!employee) return;
-      setTokenLoading(true);
-      setActionError('');
+
       try {
         const next = await ensureVerificationToken(employee.id);
         if (!cancelled) setToken(next);
@@ -347,14 +431,23 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
         console.error('Token QR ID Card gagal:', error);
         if (!cancelled) {
           setToken('');
-          setActionError(error instanceof Error ? error.message : 'Token verifikasi gagal dibuat.');
+          setActionError(
+            error instanceof Error
+              ? error.message
+              : 'Token verifikasi gagal dibuat.'
+          );
         }
       } finally {
         if (!cancelled) setTokenLoading(false);
       }
     };
+
     void loadToken();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      // currentEmployeeId intentionally captures the selection for this effect.
+      void currentEmployeeId;
+    };
   }, [employee?.id, employee?.id_karyawan]);
 
   const resetDesign = () => {
@@ -369,7 +462,7 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
       setActionError('Tunggu sampai QR verifikasi selesai dibuat.');
       return;
     }
-    const svg = CardArtwork({ employee, side, design, logoUrl, photoOverride: photoDataUrl, verificationToken: token });
+    const svg = CardArtwork({ employee, side, design, logoUrl, photoOverride: activePhotoDataUrl, verificationToken: token });
     const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -385,7 +478,7 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
       setActionError('Tunggu sampai QR verifikasi selesai dibuat.');
       return;
     }
-    const exportSvg = CardArtwork({ employee, side, design, logoUrl, photoOverride: photoDataUrl, verificationToken: token });
+    const exportSvg = CardArtwork({ employee, side, design, logoUrl, photoOverride: activePhotoDataUrl, verificationToken: token });
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
@@ -460,9 +553,38 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
 
   const cetakCurrent = () => { if (employee) void cetakCards([employee.id]); };
   const unduhPdf = () => { if (employee) void cetakCards([employee.id]); };
-  const toggleBatch = (id: string) => setSelectedBatch(v => v.includes(id) ? v.filter(x => x !== id) : [...v, id]);
+  const toggleBatch = useCallback(
+    (id: string) =>
+      setSelectedBatch(v =>
+        v.includes(id) ? v.filter(x => x !== id) : [...v, id]
+      ),
+    []
+  );
 
-  const svg = employee ? CardArtwork({ employee, side, design, logoUrl, photoOverride: photoDataUrl, verificationToken: token }) : '';
+  // Expensive SVG/QR/barcode generation is memoized. Switching unrelated UI
+  // state no longer rebuilds the entire ID card artwork.
+  const activePhotoDataUrl = employee && photoEmployeeId === employee.id ? photoDataUrl : '';
+  const svg = useMemo(
+    () =>
+      employee
+        ? CardArtwork({
+            employee,
+            side,
+            design,
+            logoUrl,
+            photoOverride: activePhotoDataUrl,
+            verificationToken: token,
+          })
+        : '',
+    [
+      employee,
+      side,
+      design,
+      logoUrl,
+      activePhotoDataUrl,
+      token,
+    ]
+  );
   const currentTheme = ID_CARD_DESIGN_THEMES[design.theme];
 
   if (!employee) return <div className="panel"><p>{t('no_employee_for_id_card')}</p></div>;
@@ -506,7 +628,14 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
           <div className="id-card-actions"><button className="secondary" onClick={unduhPng}>⬇️ Unduh PNG</button><button className="secondary" onClick={unduhSvg}>⬇️ Unduh SVG</button><button className="primary" onClick={unduhPdf}>⬇️ Unduh PDF — Depan + Belakang</button><button className="primary" onClick={cetakCurrent}>🖨️ Cetak — Depan + Belakang</button></div>
           <small className="id-card-note">QR berisi token acak, bukan data pribadi. Token memvalidasi ke sistem Project by Tirta dan tetap menunjuk ke karyawan yang sama saat ID Karyawan berubah.</small>
         </div>
-        <div className="panel id-card-list"><div className="id-list-head"><div><b>{t('select_batch_print')}</b><small>{selectedBatch.length} karyawan dipilih</small></div><button className="link-btn" onClick={() => setSelectedBatch(filtered.map(e => e.id))}>{t('select_all')}</button></div>{filtered.map(e => <label className="id-employee-row" key={e.id}><input type="checkbox" checked={selectedBatch.includes(e.id)} onChange={() => toggleBatch(e.id)} /><span className="id-avatar">{initials(e.nama)}</span><span><b>{e.nama}</b><small>{safeId(e)} · {e.jabatan || '-'}</small></span></label>)}</div>
+        <div className="panel id-card-list"><div className="id-list-head"><div><b>{t('select_batch_print')}</b><small>{selectedBatch.length} karyawan dipilih</small></div><button className="link-btn" onClick={() => setSelectedBatch(filtered.map(e => e.id))}>{t('select_all')}</button></div>{filtered.map(e => (
+  <EmployeeBatchRow
+    key={e.id}
+    employee={e}
+    checked={selectedBatch.includes(e.id)}
+    onToggle={toggleBatch}
+  />
+))}</div>
       </div>
     </div>
   );
