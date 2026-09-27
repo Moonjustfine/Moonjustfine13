@@ -1,4 +1,4 @@
-import moonLogo from '../../assets/moon-logo.svg';
+import moonLogo from '../../assets/moon-logo.png';
 import { useTranslation } from '../../locales/LanguageContext';
 
 interface HomeProps {
@@ -20,7 +20,6 @@ export default function Home({ onMasuk, onRegister }: HomeProps) {
           <a href="#solutions">{t('home_solutions')}</a>
           <a href="#features">{t('employees')}</a>
           <button type="button" className="public-login-link" onClick={onMasuk}>{t('login')}</button>
-          <button type="button" className="public-cta" onClick={onMasuk}>{t('home_start')}</button>
         </nav>
       </header>
 
