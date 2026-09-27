@@ -17,7 +17,7 @@ import PayrollProductionV22 from '../payroll/PayrollProductionV22';
 import RecruitmentATSv25 from '../recruitment/RecruitmentATSv25';
 import EnterpriseRoadmapV26V35 from '../enterprise/EnterpriseRoadmapV26V35';
 import ProfessionalSuite from '../enterprise/ProfessionalSuite';
-import moonLogo from '../../../assets/moon-logo.svg';
+import moonLogo from '../../../assets/moon-logo.png';
 import IDCardModule from '../employee/IDCardModule';
 
 import { useTranslation } from '../../../locales/LanguageContext';
@@ -818,13 +818,28 @@ export default function DashboardAdmin() {
       if (!active) return;
       if (data.user?.email) {
         const { data: p } = await supabase.from('hris_users').select('nama,role,status').eq('email', data.user.email).maybeSingle();
-        if (active && p?.status === 'Aktif') {
+        if (
+          active &&
+          p?.status === 'Aktif' &&
+          ['Super Admin', 'Admin', 'HRD', 'Payroll', 'Supervisor'].includes(p.role || '')
+        ) {
           setUserRole(p.role || '');
           setProfileName(p.nama || '');
           const { data: rp } = await supabase.from('hris_role_permissions').select('permission_code').eq('role_name', p.role);
           loadProfilePhoto();
-          if (active) { setDbPerms((rp || []).map(x => x.permission_code)); setEmail(data.user.email); setLogged(true); }
-        } else if (active) { await supabase.auth.signOut(); setLogged(false); }
+          if (active) {
+            setDbPerms((rp || []).map(x => x.permission_code));
+            setEmail(data.user.email);
+            setLogged(true);
+          }
+        } else if (active) {
+          await supabase.auth.signOut();
+          setLogged(false);
+          setUserRole('');
+          setProfileName('');
+          setDbPerms([]);
+          setError('Akun ini bukan akun Dashboard HR.');
+        }
       }
       if (active) setSessionChecking(false);
     };
@@ -932,8 +947,14 @@ export default function DashboardAdmin() {
     if (e2 || !data.user) { setError(e2?.message || 'Email atau password tidak valid.'); return; }
     const { data: profile, error: pe } = await supabase.from('hris_users').select('nama,role,status').ilike('email', data.user.email || '').maybeSingle();
     if (pe) { await signOut(); setError('Profil akses HR tidak dapat diverifikasi. Coba lagi atau hubungi administrator.'); return; }
-    if (!profile || profile.status !== 'Aktif') {
-      await signOut(); setError('Akun tidak memiliki akses Dashboard HR.'); return;
+    if (
+      !profile ||
+      profile.status !== 'Aktif' ||
+      !['Super Admin', 'Admin', 'HRD', 'Payroll', 'Supervisor'].includes(profile.role || '')
+    ) {
+      await signOut();
+      setError('Akun ini adalah akun Karyawan dan harus menggunakan Portal Karyawan.');
+      return;
     }
     setUserRole(profile.role);
     setProfileName(profile.nama || '');
