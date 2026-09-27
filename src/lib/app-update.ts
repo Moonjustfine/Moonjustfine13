@@ -3,22 +3,52 @@ import { Capacitor } from '@capacitor/core';
 import { appConfirm } from './app-dialog';
 
 const GITHUB_API =
-  'https://api.github.com/repos/Finalproject13/final/releases/latest';
+  'https://api.github.com/repos/Moonjustfine/Moonjustfine13/releases/latest';
+
+function parseVersion(value: unknown): number[] {
+  const match = String(value || '')
+    .trim()
+    .replace(/^v/i, '')
+    .match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?/);
+
+  if (!match) return [];
+
+  return [
+    Number(match[1] || 0),
+    Number(match[2] || 0),
+    Number(match[3] || 0),
+  ];
+}
+
+function isNewerVersion(latest: unknown, current: unknown): boolean {
+  const a = parseVersion(latest);
+  const b = parseVersion(current);
+
+  if (!a.length || !b.length) return false;
+
+  for (let i = 0; i < 3; i += 1) {
+    if ((a[i] || 0) > (b[i] || 0)) return true;
+    if ((a[i] || 0) < (b[i] || 0)) return false;
+  }
+
+  return false;
+}
 
 export async function checkForAppUpdate(): Promise<void> {
-  // Hanya jalankan di Android
+  // Update APK hanya relevan untuk Android.
   if (Capacitor.getPlatform() !== 'android') {
     return;
   }
 
   try {
     const current = await App.getInfo();
-    const currentVersionCode = Number(current.build);
+    const currentVersion = String(current.version || '').trim();
 
     const response = await fetch(GITHUB_API, {
       headers: {
         Accept: 'application/vnd.github+json',
       },
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -27,11 +57,9 @@ export async function checkForAppUpdate(): Promise<void> {
 
     const release = await response.json();
 
-    const latestVersionCode = Number(
-      release?.body?.match(/versionCode\s*:\s*(\d+)/i)?.[1] || 0
-    );
+    const latestVersion = String(release?.tag_name || '').trim();
 
-    if (!latestVersionCode || latestVersionCode <= currentVersionCode) {
+    if (!isNewerVersion(latestVersion, currentVersion)) {
       return;
     }
 
@@ -41,20 +69,31 @@ export async function checkForAppUpdate(): Promise<void> {
     );
 
     if (!apkAsset?.browser_download_url) {
+      console.warn('Release terbaru tidak memiliki APK.');
       return;
     }
 
+    const releaseNotes = String(release?.body || '').trim();
+
     const update = await appConfirm(
-      `Versi baru ${release.tag_name || ''} tersedia.\n\n` +
-      `Versi saat ini: ${current.version}\n` +
-      `Versi terbaru tersedia.\n\n` +
-      `Apakah kamu ingin membuka halaman download update?`
+      `Versi baru Project by Tirta tersedia.\n\n` +
+      `Versi saat ini: ${currentVersion}\n` +
+      `Versi terbaru: ${latestVersion.replace(/^v/i, '')}\n\n` +
+      (releaseNotes
+        ? `${releaseNotes.slice(0, 500)}\n\n`
+        : '') +
+      `Buka halaman download untuk memasang update?`
     );
 
     if (update) {
-      window.open(apkAsset.browser_download_url, '_blank');
+      window.open(
+        apkAsset.browser_download_url,
+        '_blank',
+        'noopener,noreferrer'
+      );
     }
   } catch (error) {
+    // Kegagalan cek update tidak boleh menghalangi aplikasi dibuka.
     console.warn('Pemeriksaan update gagal:', error);
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "moonxproject-enterprise",
   "private": true,
-  "version": "57.1.0",
+  "version": "57.1.1",
   "type": "module",
   "engines": {
     "node": ">=24 <25",
