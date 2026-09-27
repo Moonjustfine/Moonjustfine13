@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import moonLogo from '../../../assets/moon-logo.svg';
+import moonLogo from '../../../assets/moon-logo.png';
 import { supabase } from '../../../lib/supabase/client';
 import { useTranslation } from '../../../locales/LanguageContext';
 
@@ -193,58 +193,20 @@ export default function RegistrasiKaryawan({ onBack }: RegistrasiKaryawanProps) 
     let uploadedPhotoPath = '';
 
     try {
+      // Upload foto SEBELUM signUp().
+      // Ini penting karena signUp() dapat berhasil tanpa session
+      // ketika email confirmation aktif.
+      if (photoFile) {
+        const fileExt =
+          photoFile.name.split('.').pop()?.toLowerCase() || 'jpg';
 
-      // Foto tidak lagi diupload sebelum signUp().
-      // Registrasi Auth harus berhasil terlebih dahulu.
-
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password: form.password,
-        options: {
-          data: {
-            nik_ktp: nik,
-            id_karyawan: idKaryawan ? idKaryawan.toUpperCase() : null,
-            nama,
-            tempat_lahir: form.tempat_lahir.trim(),
-            tanggal_lahir: form.tanggal_lahir || null,
-            jenis_kelamin: form.jenis_kelamin,
-            alamat_rumah: form.alamat_rumah.trim(),
-            no_telp: form.no_telp.trim(),
-            status_pernikahan: form.status_pernikahan,
-            nama_ibu_kandung: form.nama_ibu_kandung.trim(),
-            departemen: form.departemen.trim(),
-            jabatan: form.jabatan.trim(),
-            status_karyawan: form.status_karyawan,
-            tanggal_masuk: form.tanggal_masuk,
-            gaji_pokok: String(gaji),
-            bank_name: form.bank_name.trim(),
-            bank_account: form.bank_account.trim(),
-            // Foto diupload setelah Auth berhasil dibuat.
-            foto_url: null,
-          },
-        },
-      });
-
-      if (signUpError) throw signUpError;
-
-      // Supabase can intentionally return an obfuscated successful response when
-      // an account already exists. A missing user means no Auth INSERT occurred,
-      // therefore the employee trigger and HR notification cannot run.
-      if (!signUpData?.user) {
-        throw new Error('email_already_or_other');
-      }
-
-      // Auth trigger sudah membuat karyawan + approval + notifikasi HR.
-      // Foto diproses setelah Auth berhasil dan tidak boleh menggagalkan registrasi.
-      if (photoFile && signUpData.session?.user) {
-        const userId = signUpData.session.user.id;
-        const fileExt = photoFile.name.split('.').pop()?.toLowerCase() || 'jpg';
         const safeUuid =
-          typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          typeof crypto !== 'undefined' &&
+          typeof crypto.randomUUID === 'function'
             ? crypto.randomUUID()
             : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-        const photoPath = `registration/${userId}/${safeUuid}.${fileExt}`;
+        const photoPath = `registration/${safeUuid}.${fileExt}`;
 
         const { error: photoUploadError } = await supabase.storage
           .from('profile-photos')
@@ -255,27 +217,55 @@ export default function RegistrasiKaryawan({ onBack }: RegistrasiKaryawanProps) 
           });
 
         if (photoUploadError) {
-          console.warn(
-            '[RegistrasiKaryawan] Foto gagal diupload, tetapi registrasi tetap berhasil:',
-            photoUploadError
+          throw new Error(
+            `Foto gagal diupload: ${photoUploadError.message}`
           );
-        } else {
-          uploadedPhotoPath = photoPath;
-
-          const { error: photoProfileError } = await supabase
-            .from('karyawan')
-            .update({ foto_url: photoPath })
-            .eq('auth_user_id', userId);
-
-          if (photoProfileError) {
-            console.warn(
-              '[RegistrasiKaryawan] Foto berhasil diupload tetapi profil belum diperbarui:',
-              photoProfileError
-            );
-          }
         }
+
+        uploadedPhotoPath = photoPath;
       }
 
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email,
+          password: form.password,
+          options: {
+            data: {
+              nik_ktp: nik,
+              id_karyawan: idKaryawan
+                ? idKaryawan.toUpperCase()
+                : null,
+              nama,
+              tempat_lahir: form.tempat_lahir.trim(),
+              tanggal_lahir: form.tanggal_lahir || null,
+              jenis_kelamin: form.jenis_kelamin,
+              alamat_rumah: form.alamat_rumah.trim(),
+              no_telp: form.no_telp.trim(),
+              status_pernikahan: form.status_pernikahan,
+              nama_ibu_kandung: form.nama_ibu_kandung.trim(),
+              departemen: form.departemen.trim(),
+              jabatan: form.jabatan.trim(),
+              status_karyawan: form.status_karyawan,
+              tanggal_masuk: form.tanggal_masuk,
+              gaji_pokok: String(gaji),
+              bank_name: form.bank_name.trim(),
+              bank_account: form.bank_account.trim(),
+
+              // Trigger auth_bootstrap akan menyimpan path ini
+              // langsung ke karyawan.foto_url.
+              foto_url: uploadedPhotoPath || null,
+            },
+          },
+        });
+
+      if (signUpError) throw signUpError;
+
+      if (!signUpData?.user) {
+        throw new Error('email_already_or_other');
+      }
+
+      // Tidak perlu menunggu session.
+      // Trigger Auth sudah membuat karyawan + approval + foto_url.
       setSuccess(true);
     } catch (err: any) {
       if (uploadedPhotoPath) {
