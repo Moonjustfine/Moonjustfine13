@@ -1,11 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { isSupabaseConfigured, supabase } from './lib/supabase/client';
 import { signIn } from './lib/auth';
 import { checkForAppUpdate } from './lib/app-update';
 import { useTranslation } from './locales/LanguageContext';
-import { loadUserThemePreference, getEmployeePortalTheme } from './lib/userPreferences';
+import { loadUserThemePreference, getEmployeePortalTheme, getPublicAppTheme } from './lib/userPreferences';
 
 import moonLogo from './assets/moon-logo.svg';
+import cosmicBackground from './assets/cosmic-background.svg';
 import { applyCosmicTheme, initializeCosmicTheme } from './theme/professionalTheme';
 import { installLoadingStyles } from './loading-real-final-v57.15';
 
@@ -16,6 +18,8 @@ import Home from './pages/Home/Home';
 import VerifyIdCard from './pages/VerifyIdCard/VerifyIdCard';
 
 import ErrorBoundary from './components/common/ErrorBoundary';
+
+const IS_ANDROID_APP = Capacitor.getPlatform() === 'android';
 
 type View = 'home' | 'login' | 'admin' | 'employee' | 'register' | 'reset-password' | 'verify';
 
@@ -153,8 +157,26 @@ export default function App() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    initializeCosmicTheme();
     installLoadingStyles();
+    if (!IS_ANDROID_APP) return;
+
+    initializeCosmicTheme();
+    let active = true;
+
+    const refreshAndroidPublicTheme = async () => {
+      const next = await getPublicAppTheme();
+      if (active) applyCosmicTheme(next, false);
+    };
+
+    void refreshAndroidPublicTheme();
+    const timer = window.setInterval(() => {
+      void refreshAndroidPublicTheme();
+    }, 15000);
+
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
   }, []);
 
   const [view, setView] = useState<View>('home');
@@ -277,10 +299,12 @@ export default function App() {
       setView(account.view);
 
       if (data.session.user.id) {
-        if (account.view === 'employee') {
-          applyCosmicTheme(await getEmployeePortalTheme(), false);
-        } else if (account.view === 'admin') {
-          applyCosmicTheme(await loadUserThemePreference(data.session.user.id), false);
+        if (IS_ANDROID_APP) {
+          if (account.view === 'employee') {
+            applyCosmicTheme(await getEmployeePortalTheme(), false);
+          } else if (account.view === 'admin') {
+            applyCosmicTheme(await loadUserThemePreference(data.session.user.id), false);
+          }
         }
       }
 
@@ -324,6 +348,10 @@ export default function App() {
             setError('');
             setChecking(false);
 
+            if (IS_ANDROID_APP) {
+              void getPublicAppTheme().then(theme => applyCosmicTheme(theme, false));
+            }
+
             window.location.hash = '/login';
 
             return;
@@ -340,7 +368,7 @@ export default function App() {
 
             setView(account.view);
 
-            if (session.user.id) {
+            if (session.user.id && IS_ANDROID_APP) {
               if (account.view === 'employee') {
                 applyCosmicTheme(await getEmployeePortalTheme(), false);
               } else if (account.view === 'admin') {
@@ -411,7 +439,7 @@ export default function App() {
 
     setView(account.view);
 
-    if (data.user.id) {
+    if (data.user.id && IS_ANDROID_APP) {
       if (account.view === 'employee') {
         applyCosmicTheme(await getEmployeePortalTheme(), false);
       } else if (account.view === 'admin') {
@@ -451,7 +479,13 @@ export default function App() {
 
         {view === 'home' && (
           <Home
-            onMasuk={() => { setError(''); setLoginOpen(true); }}
+            onMasuk={() => {
+              setError('');
+              if (IS_ANDROID_APP) {
+                void getPublicAppTheme().then(theme => applyCosmicTheme(theme, false));
+              }
+              setLoginOpen(true);
+            }}
             onRegister={() => go('register')}
           />
         )}
@@ -640,8 +674,12 @@ function LoginScreen({
   };
 
   return (
-    <main className="unified-login-page modal-overlay" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <section className="unified-login-card login-modal-card">
+    <main
+      className={`unified-login-page modal-overlay${IS_ANDROID_APP ? ' pt-cosmic-auth' : ''}`}
+      style={IS_ANDROID_APP ? { backgroundImage: `url(${cosmicBackground})` } : undefined}
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <section className={`unified-login-card login-modal-card${IS_ANDROID_APP ? ' pt-auth-card' : ''}`}>
         <button type="button" className="login-modal-close" onClick={onClose} aria-label={t('close')}>×</button>
 
         {/* =================================================
@@ -684,7 +722,7 @@ function LoginScreen({
           <span>{t('secure_access')}</span>
 
           <h1>
-             Project by Tirta
+             Masuk ke Akun Anda
           </h1>
 
           <p>{t('login_description')}</p>

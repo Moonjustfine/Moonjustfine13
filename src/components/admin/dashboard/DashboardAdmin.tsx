@@ -2853,6 +2853,7 @@ function Settings({
       const cosmic = await loadUserThemePreference(userId);
       applyCosmicTheme(cosmic, true);
       setActiveThemeId(cosmic);
+      if (canManageThemes) await setEmployeePortalTheme(cosmic);
     };
     void loadTheme();
   },[canManageThemes]);

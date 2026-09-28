@@ -3105,6 +3105,80 @@ body:has(.login-wrap .loading),
     opacity: 1;
   }
 }
+/* =========================================================
+   PROJECT BY TIRTA — COSMIC MOBILE REDESIGN V58
+   Login + employee dashboard based on the supplied reference.
+   ========================================================= */
+.pt-cosmic-auth{background-color:#020812 !important;background-position:center !important;background-size:cover !important;background-repeat:no-repeat !important;padding:18px !important}
+.pt-cosmic-auth::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 68% 25%,rgba(91,223,255,.16),transparent 30%),linear-gradient(180deg,rgba(1,6,15,.16),rgba(1,6,15,.72));pointer-events:none}
+.pt-auth-card{position:relative;z-index:2;overflow:hidden !important;width:min(430px,calc(100vw - 24px)) !important;max-height:calc(100dvh - 24px) !important;border:1px solid rgba(214,174,88,.78) !important;border-radius:26px !important;background:linear-gradient(145deg,rgba(5,15,30,.95),rgba(5,11,22,.92)) !important;box-shadow:0 28px 90px rgba(0,0,0,.55),0 0 36px rgba(80,207,255,.10) !important;backdrop-filter:blur(18px) saturate(140%)}
+.pt-auth-card::after{content:"";position:absolute;width:260px;height:260px;right:-120px;bottom:-120px;border-radius:50%;border:1px solid rgba(102,222,255,.30);box-shadow:0 0 60px rgba(91,223,255,.16);pointer-events:none}
+.pt-auth-card .unified-brand strong,.pt-auth-card .unified-login-heading h1{letter-spacing:-.025em}
+.pt-auth-card .unified-login-heading h1{font-size:clamp(25px,7vw,33px) !important}
+.pt-auth-card .unified-login-button{background:linear-gradient(135deg,#f3c85e,#d6ae58) !important;border-color:#ffe29a !important;box-shadow:0 10px 28px rgba(214,174,88,.23) !important}
+.pt-auth-card .unified-login-form input{border-color:rgba(101,186,255,.36) !important;background:rgba(7,20,39,.86) !important}
+.pt-auth-card .unified-login-form input:focus{border-color:#71dcff !important;box-shadow:0 0 0 3px rgba(113,220,255,.12) !important}
+
+.pt-cosmic-shell{min-height:100vh !important;background-color:#020812 !important;background-size:cover !important;background-position:center !important;background-attachment:fixed !important;position:relative}
+.pt-cosmic-shell::before{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(2,8,18,.42),rgba(2,8,18,.86) 72%);pointer-events:none;z-index:0}
+.pt-cosmic-shell>*{position:relative;z-index:1}
+.pt-cosmic-shell .employee-topbar{position:sticky !important;top:0;z-index:40 !important;background:rgba(3,10,22,.76) !important;border-bottom:1px solid rgba(214,174,88,.48) !important;backdrop-filter:blur(22px) saturate(145%)}
+.pt-cosmic-shell .employee-user{gap:8px !important}.pt-notification-button{width:36px;height:36px;border-radius:12px;border:1px solid rgba(80,201,255,.36);background:rgba(7,23,43,.78);color:#e9f4ff;display:grid;place-items:center;position:relative;font-size:16px;cursor:pointer}.pt-notification-button b{position:absolute;right:-4px;top:-5px;min-width:15px;height:15px;padding:0 4px;border-radius:999px;background:#ef5b62;color:#fff;font-size:8px;display:grid;place-items:center;border:2px solid #071321}
+.pt-cosmic-shell .employee-page{max-width:1100px !important;margin:0 auto !important;padding:18px 18px 120px !important}
+.pt-cosmic-shell .employee-heading{display:none !important}
+.pt-cosmic-shell .employee-tabs{display:none !important}
+.pt-cosmic-shell .portal-card,.pt-cosmic-shell .pt-highlight-card{background:linear-gradient(145deg,rgba(11,27,49,.86),rgba(4,13,28,.90)) !important;border:1px solid rgba(67,180,255,.42) !important;box-shadow:0 18px 55px rgba(0,0,0,.26),inset 0 1px rgba(255,255,255,.03) !important;backdrop-filter:blur(14px)}
+.pt-dashboard-hero{min-height:240px;margin-bottom:16px;padding:28px 28px 24px;border-radius:26px;border:1px solid rgba(214,174,88,.62);background-position:center;background-size:cover;overflow:hidden;position:relative;box-shadow:0 22px 70px rgba(0,0,0,.35)}
+.pt-dashboard-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(2,10,22,.94) 0%,rgba(3,12,26,.72) 46%,rgba(3,10,22,.18) 100%)}
+.pt-dashboard-hero-copy{position:relative;z-index:2;max-width:610px}
+.pt-dashboard-hero-copy h1{margin:7px 0 4px;color:#f4f8ff !important;font-size:36px;line-height:1.05;letter-spacing:-.035em}
+.pt-dashboard-hero-copy h1 strong{color:#f0d68c !important;font-weight:800}
+.pt-dashboard-hero-copy p{margin:0;color:#9fb6cf !important}
+.pt-dashboard-hero-orb{position:absolute;right:32px;top:32px;width:210px;height:210px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#d8f1ff 0,#548cc8 18%,#133a67 55%,#071423 74%);box-shadow:0 0 60px rgba(67,209,255,.22);opacity:.95}
+.pt-dashboard-orbit,.pt-dashboard-glow{position:absolute;inset:-16px;border-radius:50%;border:1px solid rgba(123,225,255,.35)}
+.pt-dashboard-orbit{transform:rotate(-18deg) scaleY(.32);box-shadow:0 0 20px rgba(123,225,255,.20)}
+.pt-dashboard-glow{inset:24px;border-color:rgba(214,174,88,.28);filter:blur(1px)}
+.pt-attendance-summary{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,.8fr);gap:16px;margin-bottom:16px}
+.pt-attendance-main{padding:20px !important}
+.pt-attendance-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.pt-attendance-top h2,.pt-work-card h2,.pt-section-heading h2,.pt-highlight-card h2{margin:4px 0 0;color:#f7f9fc !important;font-size:22px}
+.pt-attendance-top p{margin:5px 0 0;color:#849bb5;font-size:12px}
+.pt-attendance-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.pt-attendance-metrics>div{padding:16px;border-radius:15px;background:rgba(4,14,29,.68);border:1px solid rgba(72,180,255,.22)}
+.pt-attendance-metrics small,.pt-work-time span{display:block;color:#8ea9c4;font-size:11px}
+.pt-attendance-metrics strong{display:block;color:#f6fbff;font-size:28px;margin:4px 0}
+.pt-attendance-metrics span{color:#6ce8bc;font-size:11px}
+.pt-attendance-progress{margin-top:14px}.pt-attendance-progress>div:first-child{display:flex;justify-content:space-between;color:#90a8c2;font-size:11px;margin-bottom:6px}.pt-attendance-progress b{color:#e3ebf6}.pt-progress-track{height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}.pt-progress-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#46d7ff,#d6ae58);box-shadow:0 0 16px rgba(70,215,255,.32)}
+.pt-work-card{padding:20px !important}.pt-work-time{margin-top:28px}.pt-work-time strong{display:block;color:#f8fbff;font-size:27px}.pt-work-line{position:relative;height:8px;margin:18px 0;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden}.pt-work-line span{position:absolute;left:0;top:0;height:100%;width:52%;background:linear-gradient(90deg,#3ad9ff,#d6ae58);border-radius:999px}.pt-work-line i{position:absolute;left:49%;top:-4px;width:15px;height:15px;border-radius:50%;background:#fff1bc;box-shadow:0 0 20px rgba(214,174,88,.6)}.pt-work-foot{display:flex;justify-content:space-between;color:#8197b1;font-size:11px}.pt-work-foot b{color:#f0d68c}
+.pt-feature-section{margin-bottom:16px}.pt-section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:4px 2px 12px}.pt-section-heading h2{font-size:21px !important}.pt-feature-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.pt-feature-tile{padding:12px 8px 13px;border-radius:16px;background:linear-gradient(180deg,rgba(10,29,54,.96),rgba(5,16,31,.96));border:1px solid rgba(65,181,255,.32);color:#fff;display:flex;align-items:center;flex-direction:column;gap:5px;min-height:110px;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}.pt-feature-tile:hover{transform:translateY(-2px);border-color:rgba(214,174,88,.74);box-shadow:0 12px 30px rgba(0,0,0,.25)}.pt-feature-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:24px;font-weight:800;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.20),rgba(18,67,122,.82));border:1px solid rgba(103,219,255,.58);box-shadow:inset 0 1px rgba(255,255,255,.12),0 0 22px rgba(49,184,255,.12)}.pt-feature-payroll,.pt-feature-report{color:#f2d16c}.pt-feature-leave{color:#8df0d0}.pt-feature-approval{color:#f3d06e}.pt-feature-tile b{font-size:12px}.pt-feature-tile small{color:#7e9bb8;font-size:9px;text-align:center}
+.pt-highlight-card{min-height:170px;border-radius:22px;margin-bottom:16px;padding:22px;display:flex;justify-content:space-between;align-items:flex-end;background-position:center;background-size:cover !important;overflow:hidden;position:relative}.pt-highlight-card::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,15,29,.94),rgba(4,15,29,.52),rgba(4,15,29,.16))}.pt-highlight-card>div{position:relative;z-index:1}.pt-highlight-card p{max-width:520px;color:#9bb0c7;font-size:12px;line-height:1.45;margin:7px 0 12px}.pt-highlight-camera{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;border:2px solid #d6ae58;color:#f0d68c;background:rgba(4,13,27,.72);font-size:30px;box-shadow:0 0 26px rgba(214,174,88,.18)}
+.pt-activity-card{padding:18px 20px !important}.pt-activity-row{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center}.pt-activity-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#39c990;color:#fff;font-weight:900;box-shadow:0 0 18px rgba(57,201,144,.26)}.pt-activity-row b{display:block;color:#f6fbff}.pt-activity-row small{display:block;color:#819bb7;margin-top:3px}.pt-activity-row strong{color:#e9f1f9}
+.pt-bottom-nav{position:fixed !important;left:50%;bottom:12px;transform:translateX(-50%);z-index:90;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:7px;border-radius:22px;background:rgba(3,10,21,.88);border:1px solid rgba(214,174,88,.45);box-shadow:0 20px 50px rgba(0,0,0,.42),0 0 24px rgba(78,197,255,.09);backdrop-filter:blur(18px);min-width:min(460px,calc(100vw - 26px))}.pt-bottom-nav button{border:0;background:transparent;color:#8fa6bf;border-radius:15px;padding:7px 12px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;min-height:50px}.pt-bottom-nav button.active{background:linear-gradient(180deg,rgba(214,174,88,.96),rgba(214,174,88,.78));color:#07111f;box-shadow:0 7px 18px rgba(214,174,88,.16)}.pt-bottom-nav button span{font-size:18px;line-height:1}.pt-bottom-nav button small{font-size:9px;font-weight:700}.pt-bottom-menu{position:fixed !important;left:50%;bottom:80px;transform:translateX(-50%);z-index:89;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;width:min(520px,calc(100vw - 26px));padding:10px;border-radius:20px;background:rgba(4,12,25,.96);border:1px solid rgba(214,174,88,.42);box-shadow:0 24px 60px rgba(0,0,0,.48);backdrop-filter:blur(18px)}.pt-bottom-menu button{min-height:38px;border-radius:12px;border:1px solid rgba(70,179,255,.25);background:rgba(11,28,51,.84);color:#dce9f7;font-size:11px}.pt-bottom-menu button.active{border-color:#d6ae58;color:#07111f;background:#d6ae58}
+.pt-cosmic-shell .portal-primary{border:1px solid #f0d68c !important;background:linear-gradient(135deg,#f0d68c,#d6ae58) !important;color:#07111f !important}.pt-cosmic-shell .portal-secondary{border-color:rgba(94,198,255,.4) !important;background:rgba(11,28,51,.78) !important;color:#e9f3ff !important}
+@media(max-width:760px){.pt-cosmic-shell .employee-page{padding:12px 12px 116px !important}.pt-dashboard-hero{min-height:210px;padding:22px 18px}.pt-dashboard-hero-copy h1{font-size:29px}.pt-dashboard-hero-orb{right:-26px;top:46px;width:170px;height:170px}.pt-attendance-summary{grid-template-columns:1fr}.pt-feature-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.pt-feature-tile{min-height:100px;padding:9px 5px}.pt-feature-icon{width:42px;height:42px}.pt-highlight-card{min-height:190px;padding:18px}.pt-highlight-camera{width:62px;height:62px;font-size:25px}.pt-section-heading h2{font-size:19px !important}}
+@media(max-width:480px){.pt-cosmic-auth{padding:10px !important}.pt-auth-card{width:calc(100vw - 12px) !important;border-radius:22px !important}.pt-auth-card .unified-login-form input{height:44px !important}.pt-feature-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.pt-feature-tile b{font-size:10px}.pt-feature-tile small{font-size:7px}.pt-attendance-top{flex-direction:column}.pt-attendance-metrics strong{font-size:24px}.pt-bottom-nav{bottom:8px}.pt-bottom-menu{bottom:74px;grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* COSMIC V58 ANDROID: TABS + NO NESTED CARDS + CRISP SUN */
+/* Android-only: scoped below .pt-cosmic-shell so web/PWA remains unchanged. */
+.pt-cosmic-shell .employee-tabs{display:flex!important;align-items:center!important;gap:7px!important;width:100%!important;margin:0 0 16px!important;padding:5px!important;overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;position:sticky!important;top:60px!important;z-index:35!important;border-radius:16px!important;border:1px solid rgba(214,174,88,.36)!important;background:rgba(4,12,24,.96)!important;box-shadow:0 10px 28px rgba(0,0,0,.24)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.pt-cosmic-shell .employee-tabs::-webkit-scrollbar{display:none!important}
+.pt-cosmic-shell .employee-tabs button{flex:0 0 auto!important;min-height:38px!important;padding:0 14px!important;border:1px solid rgba(88,186,255,.24)!important;border-radius:11px!important;background:#0a1b31!important;color:#b9c9db!important;font-size:11px!important;font-weight:750!important;line-height:1!important;white-space:nowrap!important;box-shadow:none!important}
+.pt-cosmic-shell .employee-tabs button.active{border-color:#d6ae58!important;background:linear-gradient(135deg,#f2d58a,#d6ae58)!important;color:#09111d!important;box-shadow:0 7px 18px rgba(214,174,88,.16)!important}
+.pt-cosmic-shell .pt-bottom-menu{display:none!important}
+.pt-cosmic-shell .employee-topbar{background:rgba(3,10,22,.97)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.pt-cosmic-shell .portal-card,.pt-cosmic-shell .pt-highlight-card{background:linear-gradient(145deg,rgba(10,24,43,.98),rgba(4,13,27,.98))!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:0 14px 34px rgba(0,0,0,.24)!important}
+.pt-cosmic-shell .pt-attendance-metrics{gap:0!important}
+.pt-cosmic-shell .pt-attendance-metrics>div{margin:0!important;padding:15px 14px!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.pt-cosmic-shell .pt-attendance-metrics>div+div{border-left:1px solid rgba(92,190,255,.18)!important}
+.pt-cosmic-shell .pt-section-heading,.pt-cosmic-shell .pt-dashboard-hero-copy,.pt-cosmic-shell .pt-attendance-top,.pt-cosmic-shell .pt-attendance-progress,.pt-cosmic-shell .pt-work-time,.pt-cosmic-shell .pt-work-foot,.pt-cosmic-shell .pt-activity-row,.pt-cosmic-shell .card-title{background:transparent!important;border:0!important;box-shadow:none!important}
+html[data-cosmic-theme="sun"] .pt-cosmic-shell{background-color:#24170b!important}
+html[data-cosmic-theme="sun"] .pt-cosmic-shell::before{background:radial-gradient(circle at 78% 14%,rgba(255,190,93,.16),transparent 30%),linear-gradient(180deg,rgba(34,18,7,.12),rgba(16,9,4,.40) 72%)!important}
+html[data-cosmic-theme="sun"] .pt-cosmic-shell .employee-topbar,html[data-cosmic-theme="sun"] .pt-cosmic-shell .employee-tabs{background:#21150b!important}
+html[data-cosmic-theme="sun"] .pt-cosmic-shell .portal-card,html[data-cosmic-theme="sun"] .pt-cosmic-shell .pt-highlight-card{background:linear-gradient(145deg,#2b1b0c,#191008)!important;border-color:rgba(246,199,103,.48)!important}
+html[data-cosmic-theme="sun"] .pt-cosmic-shell .pt-feature-tile{background:linear-gradient(180deg,#2a1b0d,#191108)!important;border-color:rgba(246,199,103,.36)!important}
+html[data-cosmic-theme="sun"] .pt-cosmic-shell .employee-tabs button{background:#2b1a0b!important;border-color:rgba(246,199,103,.24)!important;color:#e9d7b6!important}
+html[data-cosmic-theme="sun"] .pt-cosmic-shell .employee-tabs button.active{background:linear-gradient(135deg,#f8da8e,#d9a947)!important;color:#261606!important}
+@media(max-width:760px){.pt-cosmic-shell .employee-tabs{top:58px!important;margin-bottom:12px!important;border-radius:14px!important}.pt-cosmic-shell .employee-tabs button{min-height:36px!important;padding:0 12px!important;font-size:10px!important}.pt-cosmic-shell .pt-attendance-metrics>div{padding:14px 10px!important}}
 
 `;
 
@@ -3306,6 +3380,349 @@ export function installProjectByTirtaTheme(): void {
           opacity: 1;
         }
       }
+
+/* =========================================================
+   ANDROID V58.3 — HOME ONE-SCREEN / COMPACT MENU / CLEAN HEADER
+   - Home does not scroll; feature pages can still scroll.
+   - Employee name + safe attendance are the first visible content.
+   - Company logo/name and notification button are removed from Home.
+   - Bottom navigation: Home / Attendance / Menu / Profile.
+   - Menu tiles are icon-first and no longer look like nested cards.
+   ========================================================= */
+html.pt-android-home-lock,
+body.pt-android-home-lock {
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+.pt-cosmic-shell.pt-home-active {
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+.pt-cosmic-shell.pt-home-active .employee-page {
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  padding: 14px 12px 82px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-home-intro {
+  padding: 4px 3px 8px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-home-intro .portal-eyebrow {
+  font-size: 8px !important;
+  letter-spacing: .12em !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-home-intro h1 {
+  font-size: clamp(22px, 6vw, 28px) !important;
+  margin: 2px 0 1px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-home-intro p {
+  font-size: 9px !important;
+  margin: 0 !important;
+}
+
+/* Safe attendance remains one main rectangular panel. */
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card {
+  margin: 0 0 8px !important;
+  padding: 11px !important;
+  border-radius: 18px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-top {
+  padding-bottom: 7px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-top .status-badge {
+  display: none !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .card-kicker {
+  font-size: 9px !important;
+  letter-spacing: .08em !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-top h2 {
+  font-size: 17px !important;
+  margin: 2px 0 !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-top p {
+  font-size: 8px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-metrics {
+  gap: 6px !important;
+  margin-top: 5px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-metrics > div {
+  padding: 8px 10px !important;
+  border-radius: 12px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-metrics small {
+  font-size: 8px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-metrics strong {
+  font-size: 21px !important;
+  margin: 2px 0 !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-metrics span {
+  font-size: 7px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-security-line {
+  margin: 6px 0 !important;
+  font-size: 8px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-home-attendance-actions {
+  gap: 6px !important;
+  margin-top: 5px !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-home-attendance-actions button {
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 0 8px !important;
+  font-size: 9px !important;
+}
+
+/* Do not add a visual card behind the word MENU. */
+.pt-cosmic-shell.pt-home-active .pt-home-menu-section {
+  margin: 0 !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-home-menu-section .pt-heading-plain {
+  display: none !important;
+}
+
+/* Menu buttons become clean icon+label controls, not cards. */
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 5px 3px !important;
+  margin: 0 !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile {
+  min-height: 60px !important;
+  padding: 3px 2px 2px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #eef6ff !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile:hover,
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile:active {
+  transform: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-icon {
+  width: 34px !important;
+  height: 34px !important;
+  margin-bottom: 1px !important;
+  border-radius: 11px !important;
+  font-size: 18px !important;
+  box-shadow: 0 0 12px rgba(70,199,255,.10) !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile b {
+  font-size: 8px !important;
+  line-height: 1 !important;
+  font-weight: 750 !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile small {
+  display: none !important;
+}
+
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile em {
+  top: 0 !important;
+  right: 1px !important;
+  min-width: 12px !important;
+  height: 12px !important;
+  font-size: 6px !important;
+  border-width: 1px !important;
+}
+
+/* Remove any leftover Home activity area so the Home is one compact screen. */
+.pt-cosmic-shell.pt-home-active .pt-home-activity {
+  display: none !important;
+}
+
+/* Feature pages: simple compact header; no company logo/name. */
+.pt-cosmic-shell .pt-feature-topbar {
+  min-height: 48px !important;
+  height: 48px !important;
+  padding: 0 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  backdrop-filter: none !important;
+}
+
+.pt-back-button {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 11px !important;
+  border: 1px solid rgba(82,194,255,.35) !important;
+  background: rgba(7,23,43,.62) !important;
+  color: #e9f3ff !important;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 18px !important;
+}
+
+.pt-feature-topbar-title {
+  font-size: 14px !important;
+  color: #f5f8ff !important;
+}
+
+/* No notification button remains in Android header. */
+.pt-cosmic-shell .pt-notification-button {
+  display: none !important;
+}
+
+.pt-cosmic-shell .pt-profile-logout {
+  width: 100% !important;
+  margin-top: 12px !important;
+  min-height: 42px !important;
+}
+
+/* Theme-specific menu icon frames stay aligned with the Home design. */
+html[data-cosmic-theme="sun"] .pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-icon {
+  background: radial-gradient(circle at 35% 30%, rgba(255,245,210,.38), #5a3b18 72%) !important;
+  border-color: rgba(246,199,103,.55) !important;
+  color: #ffe0a2 !important;
+}
+html[data-cosmic-theme="moon"] .pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-icon {
+  background: radial-gradient(circle at 35% 30%, rgba(209,235,255,.22), #12345d 72%) !important;
+}
+html[data-cosmic-theme="galaxy"] .pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-icon {
+  background: radial-gradient(circle at 35% 30%, rgba(234,208,255,.25), #2a1655 72%) !important;
+}
+html[data-cosmic-theme="blackhole"] .pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-icon {
+  background: radial-gradient(circle at 35% 30%, rgba(186,241,255,.18), #0b1a24 72%) !important;
+}
+html[data-cosmic-theme="nebula"] .pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-icon {
+  background: radial-gradient(circle at 35% 30%, rgba(255,214,241,.25), #421942 72%) !important;
+}
+
+@media(max-width:390px){
+  .pt-cosmic-shell.pt-home-active .employee-page { padding-left: 9px !important; padding-right: 9px !important; }
+  .pt-cosmic-shell.pt-home-active .pt-feature-grid-home { gap: 3px 1px !important; }
+  .pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-icon { width: 31px !important; height: 31px !important; font-size: 16px !important; }
+  .pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile { min-height: 56px !important; }
+  .pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile b { font-size: 7px !important; }
+}
+
+
+/* =========================================================
+   ANDROID V58.5 — COMPACT WORK DURATION + SIX MENU ICONS
+   - Home shows real-time work duration from check-in.
+   - Menu middle grid contains exactly six feature entries.
+   - No extra profile/attendance feature tiles because those are in bottom nav.
+   - Icons use theme-aligned color instead of dark glyphs.
+   - Android cosmic background stays crisp; decorative blur layers are disabled.
+   ========================================================= */
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card { padding: 10px !important; margin-bottom: 7px !important; }
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-top { padding-bottom: 4px !important; }
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-top h2 { font-size: 15px !important; margin: 1px 0 !important; }
+.pt-cosmic-shell.pt-home-active .pt-safe-attendance-card .pt-attendance-top p { font-size: 7px !important; opacity: .78 !important; }
+.pt-cosmic-shell.pt-home-active .pt-work-duration { padding: 2px 1px 4px !important; }
+.pt-cosmic-shell.pt-home-active .pt-work-duration > strong { display:block !important; font-size: 25px !important; line-height:1 !important; letter-spacing:.04em !important; color:#f9fbff !important; font-variant-numeric:tabular-nums !important; }
+.pt-cosmic-shell.pt-home-active .pt-work-progress { height: 8px !important; margin: 8px 0 5px !important; border-radius:999px !important; overflow:hidden !important; background:rgba(255,255,255,.11) !important; border:1px solid rgba(255,255,255,.07) !important; }
+.pt-cosmic-shell.pt-home-active .pt-work-progress span { display:block !important; height:100% !important; min-width:0 !important; border-radius:inherit !important; background:linear-gradient(90deg,#39d7ff 0%,#5ce5c0 48%,#d6ae58 100%) !important; box-shadow:0 0 16px rgba(70,215,255,.30) !important; transition:width .7s linear !important; }
+.pt-cosmic-shell.pt-home-active .pt-work-duration-meta { display:flex !important; justify-content:space-between !important; align-items:center !important; font-size:7px !important; color:#8fa6bf !important; }
+.pt-cosmic-shell.pt-home-active .pt-work-duration-meta b { color:var(--pt-accent) !important; }
+
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home,
+.pt-cosmic-shell .pt-feature-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:4px 3px !important; }
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile,
+.pt-cosmic-shell .pt-feature-grid .pt-feature-tile { min-height:58px !important; padding:3px 2px 4px !important; gap:2px !important; border:0 !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; }
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-icon,
+.pt-cosmic-shell .pt-feature-grid .pt-feature-icon { width:31px !important; height:31px !important; margin-bottom:1px !important; border-radius:10px !important; font-size:16px !important; border:1px solid rgba(255,255,255,.18) !important; box-shadow:0 0 13px rgba(0,0,0,.16), inset 0 1px rgba(255,255,255,.10) !important; }
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile b,
+.pt-cosmic-shell .pt-feature-grid .pt-feature-tile b { font-size:8px !important; line-height:1 !important; text-align:center !important; }
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile small,
+.pt-cosmic-shell .pt-feature-grid .pt-feature-tile small { display:none !important; }
+.pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile em,
+.pt-cosmic-shell .pt-feature-grid .pt-feature-tile em { top:0 !important; right:0 !important; min-width:11px !important; height:11px !important; font-size:6px !important; border:1px solid rgba(0,0,0,.22) !important; }
+
+/* Six feature icons: vivid but still professional. */
+.pt-cosmic-shell .pt-feature-payroll { color:#ffd86a !important; background:radial-gradient(circle at 35% 30%,rgba(255,231,155,.42),#5a4116 72%) !important; }
+.pt-cosmic-shell .pt-feature-leave { color:#76f5cd !important; background:radial-gradient(circle at 35% 30%,rgba(191,255,232,.42),#174f48 72%) !important; }
+.pt-cosmic-shell .pt-feature-overtime { color:#6ee7ff !important; background:radial-gradient(circle at 35% 30%,rgba(185,247,255,.40),#164b68 72%) !important; }
+.pt-cosmic-shell .pt-feature-announcements { color:#ff9edc !important; background:radial-gradient(circle at 35% 30%,rgba(255,215,244,.44),#5a194f 72%) !important; }
+.pt-cosmic-shell .pt-feature-schedule { color:#9fc3ff !important; background:radial-gradient(circle at 35% 30%,rgba(220,234,255,.42),#203d74 72%) !important; }
+.pt-cosmic-shell .pt-feature-feedback { color:#b6a2ff !important; background:radial-gradient(circle at 35% 30%,rgba(235,226,255,.42),#3b2770 72%) !important; }
+
+/* Keep Android background sharp: remove legacy veil/filter layers. */
+.pt-cosmic-shell::before,
+.pt-cosmic-shell .employee-portal-cosmic::before,
+.pt-cosmic-shell::after,
+.pt-cosmic-shell .employee-portal-cosmic::after { opacity:0 !important; background:none !important; filter:none !important; animation:none !important; }
+.pt-cosmic-shell { background-blend-mode:normal !important; filter:none !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+.pt-cosmic-shell.pt-home-active { background-color:transparent !important; }
+
+/* Menu page uses the same flat icon grid as Home. */
+.pt-cosmic-shell .pt-menu-page { padding-top:2px !important; }
+.pt-cosmic-shell .pt-menu-page .pt-page-heading { padding-bottom:8px !important; }
+.pt-cosmic-shell .pt-menu-page .pt-page-heading p { display:none !important; }
+
+/* ANDROID V58.6 — THEME-SYNCED ATTENDANCE HISTORY + CRISP BACKGROUND */
+.pt-cosmic-shell .pt-attendance-history-page { padding:4px 0 90px !important; }
+.pt-cosmic-shell .pt-attendance-history-page .pt-page-heading { margin-bottom:10px !important; padding:2px 2px 8px !important; }
+.pt-cosmic-shell .pt-attendance-history-page .pt-page-heading h1 { margin:3px 0 !important; font-size:22px !important; color:var(--pt-text) !important; }
+.pt-cosmic-shell .pt-attendance-history-page .pt-page-heading p { margin:0 !important; font-size:9px !important; color:var(--pt-muted) !important; }
+.pt-cosmic-shell .pt-attendance-history-list { display:grid !important; gap:7px !important; }
+.pt-cosmic-shell .pt-attendance-history-row { margin:0 !important; padding:10px 11px !important; display:grid !important; grid-template-columns:minmax(0,1fr) auto !important; gap:7px 10px !important; color:var(--pt-text) !important; background:linear-gradient(145deg,rgba(10,24,43,.92),rgba(4,13,27,.94)) !important; border:1px solid color-mix(in srgb,var(--pt-accent) 34%, transparent) !important; border-radius:13px !important; box-shadow:none !important; }
+.pt-cosmic-shell .pt-attendance-history-date { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:8px !important; min-width:0 !important; }
+.pt-cosmic-shell .pt-attendance-history-date b { color:var(--pt-text) !important; font-size:11px !important; white-space:nowrap !important; }
+.pt-cosmic-shell .pt-attendance-history-date span { color:var(--pt-accent) !important; font-size:8px !important; font-weight:800 !important; }
+.pt-cosmic-shell .pt-attendance-history-times { grid-column:1 / -1 !important; display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; border-top:1px solid rgba(255,255,255,.07) !important; padding-top:7px !important; }
+.pt-cosmic-shell .pt-attendance-history-times>div { padding:0 8px !important; border-left:1px solid rgba(255,255,255,.06) !important; }
+.pt-cosmic-shell .pt-attendance-history-times>div:first-child { padding-left:0 !important; border-left:0 !important; }
+.pt-cosmic-shell .pt-attendance-history-times small { display:block !important; color:var(--pt-muted) !important; font-size:7px !important; }
+.pt-cosmic-shell .pt-attendance-history-times b { display:block !important; margin-top:2px !important; color:var(--pt-text) !important; font-size:11px !important; font-variant-numeric:tabular-nums !important; }
+.pt-cosmic-shell .pt-attendance-history-source { grid-column:1 / -1 !important; color:var(--pt-muted) !important; font-size:7px !important; }
+.pt-cosmic-shell .pt-attendance-history-empty { padding:16px 2px !important; color:var(--pt-muted) !important; font-size:10px !important; }
+html[data-cosmic-theme="sun"] .pt-cosmic-shell { background-color:#4a2d0a !important; }
+html[data-cosmic-theme="sun"] .pt-cosmic-shell .pt-attendance-history-row { background:linear-gradient(145deg,#352008,#211305)!important; border-color:rgba(246,199,103,.42)!important; }
+html[data-cosmic-theme="moon"] .pt-cosmic-shell .pt-attendance-history-row { background:linear-gradient(145deg,#102a4b,#07172d)!important; border-color:rgba(131,189,251,.34)!important; }
+html[data-cosmic-theme="galaxy"] .pt-cosmic-shell .pt-attendance-history-row { background:linear-gradient(145deg,#26164a,#100a25)!important; border-color:rgba(215,173,255,.36)!important; }
+html[data-cosmic-theme="blackhole"] .pt-cosmic-shell .pt-attendance-history-row { background:linear-gradient(145deg,#111b21,#05080c)!important; border-color:rgba(99,215,255,.32)!important; }
+html[data-cosmic-theme="nebula"] .pt-cosmic-shell .pt-attendance-history-row { background:linear-gradient(145deg,#3b1740,#1b0a22)!important; border-color:rgba(255,191,232,.36)!important; }
+
+/* Never blur/filter the Android cosmic background; only content cards may use visual depth. */
+.pt-cosmic-shell,
+.pt-cosmic-shell::before,
+.pt-cosmic-shell::after { filter:none !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+.pt-cosmic-shell::before { opacity:0 !important; background:none !important; }
+.pt-cosmic-shell::after { opacity:0 !important; background:none !important; }
+
+@media(max-width:390px){
+  .pt-cosmic-shell.pt-home-active .pt-feature-grid-home { gap:2px !important; }
+  .pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile { min-height:54px !important; }
+  .pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-icon { width:29px !important; height:29px !important; font-size:15px !important; }
+  .pt-cosmic-shell.pt-home-active .pt-feature-grid-home .pt-feature-tile b { font-size:7.5px !important; }
+}
+
 `;
   document.head.appendChild(style);
 
@@ -3402,6 +3819,74 @@ export function initializeCosmicTheme(): void {
       .module-page::after {
         display: none !important;
       }
+
+      /* =========================================================
+         ANDROID V58 — COMPACT HOME + MATCHING MENU
+         ========================================================= */
+      .pt-cosmic-shell .employee-page{max-width:720px!important;padding:14px 14px 100px!important}
+      .pt-cosmic-shell .employee-heading,.pt-cosmic-shell .employee-tabs{display:none!important}
+      .pt-cosmic-shell .pt-home-intro{padding:6px 4px 12px!important}
+      .pt-cosmic-shell .pt-home-intro h1{margin:3px 0 2px!important;font-size:27px!important;line-height:1.05!important;letter-spacing:-.02em!important}
+      .pt-cosmic-shell .pt-home-intro p{margin:0!important;color:#a9bfd6!important;font-size:12px!important}
+      .pt-cosmic-shell .pt-safe-attendance-card{margin:0 0 14px!important;padding:15px!important}
+      .pt-cosmic-shell .pt-safe-attendance-card .pt-attendance-top{padding:0 0 10px!important}
+      .pt-cosmic-shell .pt-safe-attendance-card .pt-attendance-top h2{margin:2px 0 2px!important;font-size:19px!important}
+      .pt-cosmic-shell .pt-safe-attendance-card .pt-attendance-top p{margin:0!important;font-size:10px!important;color:#98aec5!important}
+      .pt-cosmic-shell .pt-safe-attendance-card .pt-attendance-metrics{display:grid!important;grid-template-columns:1fr 1fr!important;margin:0 -15px!important;border-top:1px solid rgba(88,186,255,.16)!important;border-bottom:1px solid rgba(88,186,255,.16)!important}
+      .pt-cosmic-shell .pt-safe-attendance-card .pt-attendance-metrics>div{padding:12px 14px!important}
+      .pt-cosmic-shell .pt-safe-attendance-card .pt-attendance-metrics>div+div{border-left:1px solid rgba(88,186,255,.16)!important}
+      .pt-cosmic-shell .pt-safe-attendance-card .pt-attendance-metrics small{font-size:9px!important;color:#8fa6bf!important}
+      .pt-cosmic-shell .pt-safe-attendance-card .pt-attendance-metrics strong{font-size:24px!important;line-height:1!important}
+      .pt-cosmic-shell .pt-safe-attendance-card .pt-attendance-metrics span{font-size:9px!important;color:#9fb7ce!important}
+      .pt-cosmic-shell .pt-security-line{display:flex!important;justify-content:space-between!important;gap:8px!important;margin:10px 0!important;padding:0!important;background:transparent!important;border:0!important;color:#b7cbe0!important;font-size:10px!important;font-weight:700!important}
+      .pt-cosmic-shell .pt-home-attendance-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin-top:8px!important}
+      .pt-cosmic-shell .pt-home-attendance-actions button{min-height:40px!important}
+      .pt-cosmic-shell .pt-section-heading.pt-heading-plain{padding:2px 2px 9px!important;background:transparent!important;border:0!important;box-shadow:none!important}
+      .pt-cosmic-shell .pt-section-heading.pt-heading-plain h2{font-size:18px!important;margin:3px 0 0!important}
+      .pt-cosmic-shell .pt-feature-section{margin:0 0 15px!important}
+      .pt-cosmic-shell .pt-feature-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}
+      .pt-cosmic-shell .pt-feature-tile{min-height:88px!important;padding:9px 5px!important;position:relative!important;background:linear-gradient(180deg,#0b213b,#071427)!important;border:1px solid rgba(74,188,255,.34)!important;border-radius:14px!important;box-shadow:0 10px 24px rgba(0,0,0,.18)!important}
+      .pt-cosmic-shell .pt-feature-icon{width:38px!important;height:38px!important;margin-bottom:6px!important;border-radius:12px!important}
+      .pt-cosmic-shell .pt-feature-tile b{font-size:10px!important;line-height:1.1!important;text-align:center!important}
+      .pt-cosmic-shell .pt-feature-tile small{font-size:7px!important;line-height:1.15!important;text-align:center!important;color:#91a9c0!important}
+      .pt-cosmic-shell .pt-feature-tile em{position:absolute!important;right:5px!important;top:5px!important;min-width:14px!important;height:14px!important;padding:0 3px!important;border-radius:999px!important;background:#ef6a70!important;color:#fff!important;font-size:7px!important;font-style:normal!important;display:grid!important;place-items:center!important;border:2px solid #081626!important}
+      .pt-cosmic-shell .pt-home-activity{margin-top:3px!important}
+      .pt-cosmic-shell .pt-activity-list{display:grid!important;gap:6px!important}
+      .pt-cosmic-shell .pt-activity-row{display:flex!important;align-items:center!important;gap:10px!important;padding:10px 2px!important;background:transparent!important;border:0!important;box-shadow:none!important}
+      .pt-cosmic-shell .pt-activity-dot{width:28px!important;height:28px!important;border-radius:50%!important;display:grid!important;place-items:center!important;background:#123252!important;border:1px solid #49d7b7!important;color:#76ffd0!important;flex:0 0 auto!important}
+      .pt-cosmic-shell .pt-activity-row div{display:grid!important;gap:2px!important}.pt-cosmic-shell .pt-activity-row b{font-size:11px!important}.pt-cosmic-shell .pt-activity-row small{font-size:9px!important;color:#93a9bf!important}
+      .pt-cosmic-shell .pt-empty-text{padding:12px 2px!important;color:#8fa6bf!important;font-size:10px!important}
+      .pt-cosmic-shell .pt-menu-page{padding:4px 0!important}.pt-cosmic-shell .pt-page-heading{padding:4px 3px 14px!important}.pt-cosmic-shell .pt-page-heading h1{margin:4px 0!important;font-size:26px!important}.pt-cosmic-shell .pt-page-heading p{margin:0!important;color:#9db3ca!important;font-size:11px!important}
+      .pt-cosmic-shell .pt-page-grid{gap:12px!important}.pt-cosmic-shell .pt-page-card{box-shadow:0 14px 32px rgba(0,0,0,.22)!important}
+      .pt-cosmic-shell .pt-camera-frame{margin-top:8px!important;border-radius:16px!important;overflow:hidden!important}
+      .pt-cosmic-shell .pt-text-notice{margin:4px 0 10px!important}
+      html[data-cosmic-theme="sun"] .pt-cosmic-shell .pt-feature-tile{background:linear-gradient(180deg,#3a2612,#25170a)!important;border-color:rgba(246,199,103,.38)!important}
+      html[data-cosmic-theme="sun"] .pt-cosmic-shell .pt-feature-tile small,html[data-cosmic-theme="sun"] .pt-cosmic-shell .pt-home-intro p{color:#dfc99f!important}
+      html[data-cosmic-theme="sun"] .pt-cosmic-shell .pt-safe-attendance-card{background:linear-gradient(145deg,#3a2611,#241608)!important;border-color:rgba(246,199,103,.48)!important}
+      html[data-cosmic-theme="sun"] .pt-cosmic-shell .pt-bottom-nav{background:#24170a!important;border-color:rgba(246,199,103,.5)!important;backdrop-filter:none!important}
+      @media(max-width:560px){.pt-cosmic-shell .pt-feature-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important}.pt-cosmic-shell .pt-feature-tile{min-height:82px!important;padding:8px 3px!important}.pt-cosmic-shell .pt-feature-icon{width:34px!important;height:34px!important}.pt-cosmic-shell .pt-feature-tile b{font-size:9px!important}.pt-cosmic-shell .pt-feature-tile small{font-size:6.5px!important}.pt-cosmic-shell .employee-user>div{max-width:112px!important}}
+      @media(max-width:390px){.pt-cosmic-shell .employee-page{padding-left:10px!important;padding-right:10px!important}.pt-cosmic-shell .pt-feature-tile{min-height:78px!important}.pt-cosmic-shell .pt-feature-icon{width:31px!important;height:31px!important}.pt-cosmic-shell .pt-feature-tile b{font-size:8px!important}.pt-cosmic-shell .pt-feature-tile small{display:none!important}.pt-cosmic-shell .pt-bottom-nav button{padding-left:8px!important;padding-right:8px!important}}
+      /* Android V58.2 — theme-synced menu tiles and crisp login */
+      html[data-cosmic-theme="moon"] .pt-cosmic-shell .pt-feature-tile{background:linear-gradient(180deg,#102a4b,#07172d)!important;border-color:rgba(131,189,251,.38)!important}
+      html[data-cosmic-theme="galaxy"] .pt-cosmic-shell .pt-feature-tile{background:linear-gradient(180deg,#25164a,#100a25)!important;border-color:rgba(215,173,255,.42)!important}
+      html[data-cosmic-theme="blackhole"] .pt-cosmic-shell .pt-feature-tile{background:linear-gradient(180deg,#111a20,#05080c)!important;border-color:rgba(99,215,255,.34)!important}
+      html[data-cosmic-theme="nebula"] .pt-cosmic-shell .pt-feature-tile{background:linear-gradient(180deg,#3b1740,#1b0a22)!important;border-color:rgba(255,191,232,.40)!important}
+      .pt-cosmic-auth{position:relative!important;overflow:hidden!important}
+      .pt-cosmic-auth::before{z-index:0!important;transition:background .25s ease,opacity .25s ease!important}
+      .pt-cosmic-auth > *{position:relative!important;z-index:1!important}
+      html[data-cosmic-theme="sun"] .pt-cosmic-auth{background-color:#24170b!important}
+      html[data-cosmic-theme="sun"] .pt-cosmic-auth::before{background:radial-gradient(circle at 76% 24%,rgba(255,192,93,.34),transparent 31%),linear-gradient(180deg,rgba(52,25,8,.18),rgba(20,9,3,.72))!important}
+      html[data-cosmic-theme="moon"] .pt-cosmic-auth::before{background:radial-gradient(circle at 76% 24%,rgba(131,189,251,.25),transparent 31%),linear-gradient(180deg,rgba(2,12,29,.16),rgba(1,6,16,.74))!important}
+      html[data-cosmic-theme="galaxy"] .pt-cosmic-auth::before{background:radial-gradient(circle at 70% 26%,rgba(215,173,255,.27),transparent 31%),linear-gradient(180deg,rgba(20,8,39,.16),rgba(5,2,15,.76))!important}
+      html[data-cosmic-theme="blackhole"] .pt-cosmic-auth::before{background:radial-gradient(circle at 72% 26%,rgba(99,215,255,.20),transparent 30%),linear-gradient(180deg,rgba(3,8,12,.12),rgba(0,2,5,.80))!important}
+      html[data-cosmic-theme="nebula"] .pt-cosmic-auth::before{background:radial-gradient(circle at 72% 26%,rgba(255,191,232,.23),transparent 31%),linear-gradient(180deg,rgba(44,8,46,.16),rgba(10,2,13,.78))!important}
+      html[data-cosmic-theme="sun"] .pt-cosmic-auth .pt-auth-card{background:linear-gradient(145deg,#3b250e,#211306)!important;border-color:rgba(248,218,142,.78)!important}
+      html[data-cosmic-theme="moon"] .pt-cosmic-auth .pt-auth-card{border-color:rgba(228,209,160,.78)!important}
+      html[data-cosmic-theme="galaxy"] .pt-cosmic-auth .pt-auth-card{border-color:rgba(215,173,255,.74)!important}
+      html[data-cosmic-theme="blackhole"] .pt-cosmic-auth .pt-auth-card{border-color:rgba(232,195,111,.76)!important}
+      html[data-cosmic-theme="nebula"] .pt-cosmic-auth .pt-auth-card{border-color:rgba(255,191,232,.72)!important}
+      html[data-cosmic-theme="sun"] .pt-cosmic-auth .pt-auth-card .unified-login-form input{background:#2a1808!important;border-color:rgba(248,218,142,.38)!important;color:#fff6e8!important}
+      html[data-cosmic-theme="sun"] .pt-cosmic-auth .pt-auth-card .unified-login-button{background:linear-gradient(135deg,#f8da8e,#d9a947)!important}
     `;
     document.head.appendChild(pageBackgroundFix);
   }
