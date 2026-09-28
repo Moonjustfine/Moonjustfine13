@@ -3369,5 +3369,41 @@ export function applyCosmicTheme(themeId: CosmicThemeId, persist = true): void {
 
 export function initializeCosmicTheme(): void {
   installProjectByTirtaTheme();
+
+  /* =========================================================
+     V58.1 — GLOBAL PAGE BACKGROUND
+     Area luar card mengikuti background tema aktif.
+     ========================================================= */
+  if (typeof document !== 'undefined' && !document.getElementById('pt-global-page-background-v581')) {
+    const pageBackgroundFix = document.createElement('style');
+    pageBackgroundFix.id = 'pt-global-page-background-v581';
+    pageBackgroundFix.textContent = `
+      .admin-page-frame,
+      .talenta-shell,
+      .talenta-main,
+      .page,
+      .page-content,
+      .content-area,
+      .module-page,
+      .id-card-module,
+      .announcement-module,
+      .feedback-module {
+        background: transparent !important;
+      }
+
+      .admin-page-frame {
+        border: 0 !important;
+        box-shadow: none !important;
+      }
+
+      .admin-page-frame::before,
+      .admin-page-frame::after,
+      .module-page::before,
+      .module-page::after {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(pageBackgroundFix);
+  }
   applyCosmicTheme(readPersistedCosmicTheme(), false);
 }
