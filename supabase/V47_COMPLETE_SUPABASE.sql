@@ -1272,7 +1272,17 @@ begin
       insert into public.hris_employee_history(id_karyawan,jenis,dari_nilai,ke_nilai,actor_email) values(new.id_karyawan,'Departemen',old.departemen,new.departemen,auth.jwt()->>'email');
     end if;
     if coalesce(old.status_aktif,true)<>coalesce(new.status_aktif,true) then
-      insert into public.hris_employee_history(id_karyawan,jenis,dari_nilai,ke_nilai,actor_email) values(new.id_karyawan,'Status',old.status_aktif::text,new.status_aktif::text,auth.jwt()->>'email');
+      insert into public.hris_employee_history(
+        id_karyawan,jenis,dari_nilai,ke_nilai,efektif_mulai,alasan,actor_email
+      ) values (
+        new.id_karyawan,
+        'Status',
+        old.status_aktif::text,
+        new.status_aktif::text,
+        case when coalesce(new.status_aktif,true)=false then new.tanggal_keluar else old.tanggal_keluar end,
+        case when coalesce(new.status_aktif,true)=false then new.alasan_keluar else old.alasan_keluar end,
+        auth.jwt()->>'email'
+      );
     end if;
   end if;
   return new;

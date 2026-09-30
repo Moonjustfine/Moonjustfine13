@@ -3,7 +3,7 @@ const CSS = `
 
   /* =====================================================
      DESKTOP COSMIC BACKGROUND — ANDROID STYLE
-     BACKGROUND TAJAM / TANPA BLUR
+     BACKGROUND TAJAM / HD / TANPA BLUR
      ===================================================== */
 
   html.pt-web-desktop,
@@ -28,7 +28,7 @@ const CSS = `
     position: relative !important;
     isolation: isolate !important;
 
-    background-color: #02050a !important;
+    background-color: var(--pt-bg-deep, #02050a) !important;
     background-repeat: no-repeat !important;
     background-size: cover !important;
     background-position: center center !important;
@@ -48,31 +48,31 @@ const CSS = `
   html.pt-web-desktop[data-cosmic-theme="sun"] .talenta-shell,
   html.pt-web-desktop[data-cosmic-theme="sun"] .talenta-main,
   html.pt-web-desktop[data-cosmic-theme="sun"] .admin-page-frame {
-    background-image: url("/cosmic-desktop/cosmic-sun.webp") !important;
+    background-image: url("/cosmic-desktop-wide/cosmic-sun.webp") !important;
   }
 
   html.pt-web-desktop[data-cosmic-theme="moon"] .talenta-shell,
   html.pt-web-desktop[data-cosmic-theme="moon"] .talenta-main,
   html.pt-web-desktop[data-cosmic-theme="moon"] .admin-page-frame {
-    background-image: url("/cosmic-desktop/cosmic-moon.webp") !important;
+    background-image: url("/cosmic-desktop-wide/cosmic-moon.webp") !important;
   }
 
   html.pt-web-desktop[data-cosmic-theme="galaxy"] .talenta-shell,
   html.pt-web-desktop[data-cosmic-theme="galaxy"] .talenta-main,
   html.pt-web-desktop[data-cosmic-theme="galaxy"] .admin-page-frame {
-    background-image: url("/cosmic-desktop/cosmic-galaxy.webp") !important;
+    background-image: url("/cosmic-desktop-wide/cosmic-galaxy.webp") !important;
   }
 
   html.pt-web-desktop[data-cosmic-theme="blackhole"] .talenta-shell,
   html.pt-web-desktop[data-cosmic-theme="blackhole"] .talenta-main,
   html.pt-web-desktop[data-cosmic-theme="blackhole"] .admin-page-frame {
-    background-image: url("/cosmic-desktop/cosmic-blackhole.webp") !important;
+    background-image: url("/cosmic-desktop-wide/cosmic-blackhole.webp") !important;
   }
 
   html.pt-web-desktop[data-cosmic-theme="nebula"] .talenta-shell,
   html.pt-web-desktop[data-cosmic-theme="nebula"] .talenta-main,
   html.pt-web-desktop[data-cosmic-theme="nebula"] .admin-page-frame {
-    background-image: url("/cosmic-desktop/cosmic-nebula.webp") !important;
+    background-image: url("/cosmic-desktop-wide/cosmic-nebula.webp") !important;
   }
 
   /* -----------------------------------------------------
@@ -283,27 +283,27 @@ const CSS = `
   html.pt-web-desktop .unified-login-page[data-cosmic-theme="sun"],
   html.pt-web-desktop[data-cosmic-theme="sun"] .unified-login-page {
     background-image:
-      url("/cosmic-desktop/cosmic-sun.webp") !important;
+      url("/cosmic-desktop-wide/cosmic-sun.webp") !important;
   }
 
   html.pt-web-desktop[data-cosmic-theme="moon"] .unified-login-page {
     background-image:
-      url("/cosmic-desktop/cosmic-moon.webp") !important;
+      url("/cosmic-desktop-wide/cosmic-moon.webp") !important;
   }
 
   html.pt-web-desktop[data-cosmic-theme="galaxy"] .unified-login-page {
     background-image:
-      url("/cosmic-desktop/cosmic-galaxy.webp") !important;
+      url("/cosmic-desktop-wide/cosmic-galaxy.webp") !important;
   }
 
   html.pt-web-desktop[data-cosmic-theme="blackhole"] .unified-login-page {
     background-image:
-      url("/cosmic-desktop/cosmic-blackhole.webp") !important;
+      url("/cosmic-desktop-wide/cosmic-blackhole.webp") !important;
   }
 
   html.pt-web-desktop[data-cosmic-theme="nebula"] .unified-login-page {
     background-image:
-      url("/cosmic-desktop/cosmic-nebula.webp") !important;
+      url("/cosmic-desktop-wide/cosmic-nebula.webp") !important;
   }
 
   /* Hilangkan overlay blur login */

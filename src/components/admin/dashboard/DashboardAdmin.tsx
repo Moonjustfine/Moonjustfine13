@@ -54,6 +54,9 @@ type Karyawan = {
   email_terverifikasi?: boolean;
   foto_url?: string | null;
   created_at?: string;
+  tanggal_keluar?: string | null;
+  alasan_keluar?: string | null;
+  alasan_keluar_kode?: string | null;
 };
 
 interface Absensi {
@@ -516,6 +519,7 @@ export default function DashboardAdmin() {
   const [sidebar, setSidebar] = useState(() => window.innerWidth >= 900);
   const [employees, setEmployees] = useState<Karyawan[]>([]);
   const [pendingRegistrationIds, setPendingRegistrationIds] = useState<Set<string>>(new Set());
+  const [deactivationTarget, setDeactivationTarget] = useState<Karyawan | null>(null);
 
   // Karyawan Baru = hanya registrasi yang benar-benar masih menunggu approval.
   // Karyawan Tidak Aktif = sudah pernah menjadi karyawan, lalu dinonaktifkan.
@@ -1023,6 +1027,31 @@ export default function DashboardAdmin() {
     return true;
   }
 
+  async function deactivateEmployee(k: Karyawan, payload: { reasonCode: string; effectiveDate: string; note: string }) {
+    if (!canWrite(dbPerms, 'people', userRole)) {
+      setError('Anda tidak memiliki permission people.write.');
+      return;
+    }
+
+    const { error: e } = await supabase
+      .from('karyawan')
+      .update({
+        status_aktif: false,
+        tanggal_keluar: payload.effectiveDate,
+        alasan_keluar_kode: payload.reasonCode,
+        alasan_keluar: payload.note.trim() || null,
+      })
+      .eq('id', k.id);
+
+    if (e) {
+      setError(e.message);
+      return;
+    }
+
+    setToast(`${k.nama} ${t('employee_deactivated')}`);
+    await refresh();
+  }
+
   async function activateEmployee(k: Karyawan) {
     if (!canWrite(dbPerms, 'people', userRole)) {
       setError('Anda tidak memiliki permission people.write.');
@@ -1033,7 +1062,10 @@ export default function DashboardAdmin() {
       .from('karyawan')
       .update({
         status_aktif: true,
-        status_karyawan: String(k.status_karyawan || '').toLowerCase() === 'ditolak' ? 'Tetap' : (k.status_karyawan || 'Tetap')
+        status_karyawan: String(k.status_karyawan || '').toLowerCase() === 'ditolak' ? 'Tetap' : (k.status_karyawan || 'Tetap'),
+        tanggal_keluar: null,
+        alasan_keluar_kode: null,
+        alasan_keluar: null,
       })
       .eq('id', k.id);
     if (e) setError(e.message);
@@ -1388,7 +1420,8 @@ return (
     {menu==='overview'&&<Overview employees={employees} attendance={attendance} payroll={payroll} onNavigate={navigate} profileName={profileName}/>}
     {menu==='professional-suite'&&<ProfessionalSuite employees={employees} attendance={attendance} onNavigate={navigate}/>}
     {menu==='id-card'&&<IDCardModule employees={employees} companyName="Project by Tirta" logoUrl={moonLogo}/> }
-    {menu==='employees'&&<Employees data={employees.filter(k => k.status_aktif !== false)} onDelete={removeEmployee} onEdit={setEditing} onExport={(columns, format)=>format==='excel' ? exportExcel(employees.filter(k => k.status_aktif !== false) as any,'database-karyawan.xls',columns) : exportCsv(employees.filter(k => k.status_aktif !== false) as any,'database-karyawan.csv',columns)} onAdd={()=>navigate('employee-add')} />}
+    {menu==='employees'&&<Employees data={employees.filter(k => k.status_aktif !== false)} onDelete={removeEmployee} onEdit={setEditing} onDeactivate={setDeactivationTarget} canManageStatus={canWrite(dbPerms, 'people', userRole)} onExport={(columns, format)=>format==='excel' ? exportExcel(employees.filter(k => k.status_aktif !== false) as any,'database-karyawan.xls',columns) : exportCsv(employees.filter(k => k.status_aktif !== false) as any,'database-karyawan.csv',columns)} onAdd={()=>navigate('employee-add')} />}
+    {deactivationTarget&&<DeactivateEmployeeModal employee={deactivationTarget} onClose={()=>setDeactivationTarget(null)} onConfirm={async(payload)=>{ const target=deactivationTarget; if (!target) return; setDeactivationTarget(null); await deactivateEmployee(target,payload); }} />}
     {menu==='employee-new'&&<NewEmployees data={pendingEmployees} onRefresh={refresh} />}
     {menu==='employee-inactive'&&<InactiveEmployees data={inactiveEmployees} onEdit={setEditing} onActivate={activateEmployee} />}
     {menu==='employee-360'&&<Employee360 employees={employees} initialEmployeeId={employee360Id}/>}
@@ -1632,7 +1665,7 @@ function Stat({title,value,hint,icon}:{title:string;value:string;hint:string;ico
 function Quick({label,icon,onClick}:{label:string;icon:string;onClick:()=>void}){return <button className="quick-action" onClick={onClick}><span className="quick-icon"><Icon name={icon}/></span>{label}<span aria-hidden="true">›</span></button>}
 function AttendanceMini({rows}:{rows:Absensi[]}){const { t } = useTranslation(); return <div className="table-wrap"><table><thead><tr><th>{t('employee')}</th><th>{t('date')}</th><th>{t('check_in')}</th><th>{t('check_out')}</th><th>{t('status')}</th></tr></thead><tbody>{rows.length?rows.map((a,i)=><tr key={a.id||i}><td><b>{a.nama||'-'}</b><small>{a.id_karyawan||''}</small></td><td>{a.tanggal||'-'}</td><td className="green">{a.jam_masuk||'-'}</td><td>{a.jam_pulang||'-'}</td><td><Status value={a.status||'Hadir'}/></td></tr>):<Empty cols={5}/>}</tbody></table></div>}
 
-function Employees({data,onDelete,onEdit,onExport,onAdd}:{data:Karyawan[];onDelete:(k:Karyawan)=>void;onEdit:(k:Karyawan)=>void;onExport:(columns:string[],format:'csv'|'excel')=>void;onAdd:()=>void}){
+function Employees({data,onDelete,onEdit,onDeactivate,canManageStatus,onExport,onAdd}:{data:Karyawan[];onDelete:(k:Karyawan)=>void;onEdit:(k:Karyawan)=>void;onDeactivate:(k:Karyawan)=>void;canManageStatus:boolean;onExport:(columns:string[],format:'csv'|'excel')=>void;onAdd:()=>void}){
   const { t } = useTranslation();
  const [open,setOpen]=useState(false);
   const [detail,setDetail]=useState<Karyawan|null>(null);
@@ -1740,6 +1773,7 @@ function Employees({data,onDelete,onEdit,onExport,onAdd}:{data:Karyawan[];onDele
     Edit
   </button>
 
+    <button className="danger-text" disabled={!canManageStatus} onClick={()=>onDeactivate(k)}>{t('deactivate_employee')}</button>
     <button className="danger-text" onClick={()=>onDelete(k)}>{t("delete")}</button>
   </div>
 </td></tr>):<Empty cols={7}/>}</tbody></table></div></div></>
@@ -1829,6 +1863,74 @@ function NewEmployees({data,onRefresh}:{data:Karyawan[];onRefresh:()=>void}) {
   </>;
 }
 
+const deactivationReasons = (t: (key: string) => string) => [
+  { value: 'resignation', label: t('deactivation_reason_resignation') },
+  { value: 'termination', label: t('deactivation_reason_termination') },
+  { value: 'contract_end', label: t('deactivation_reason_contract_end') },
+  { value: 'retirement', label: t('deactivation_reason_retirement') },
+  { value: 'inactive', label: t('deactivation_reason_not_working') },
+  { value: 'transfer', label: t('deactivation_reason_transfer') },
+  { value: 'other', label: t('deactivation_reason_other') },
+];
+
+const reasonLabelForCode = (code: string | null | undefined, t: (key: string) => string) => {
+  const found = deactivationReasons(t).find(item => item.value === code);
+  return found?.label || t('deactivation_reason_not_set');
+};
+
+function DeactivateEmployeeModal({employee,onClose,onConfirm}:{employee:Karyawan;onClose:()=>void;onConfirm:(payload:{reasonCode:string;effectiveDate:string;note:string})=>Promise<void>}) {
+  const { t } = useTranslation();
+  const [reasonCode,setReasonCode]=useState('');
+  const [effectiveDate,setEffectiveDate]=useState(isoToday());
+  const [note,setNote]=useState('');
+  const [saving,setSaving]=useState(false);
+
+  const submit=async(e:FormEvent)=>{
+    e.preventDefault();
+    if(!reasonCode){await appAlert(t('deactivation_reason_required'));return;}
+    if(!effectiveDate){await appAlert(t('deactivation_date_required'));return;}
+    setSaving(true);
+    try {
+      await onConfirm({reasonCode,effectiveDate,note});
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return <div className="drawer-backdrop" onMouseDown={e=>{if(e.currentTarget===e.target&&!saving)onClose()}}>
+    <aside className="edit-drawer">
+      <div className="drawer-head">
+        <div><span>{t('employee_profile')}</span><h2>{t('deactivate_employee')}</h2></div>
+        <button type="button" className="icon-btn" onClick={onClose} disabled={saving}>×</button>
+      </div>
+      <form className="drawer-body" onSubmit={submit}>
+        <div style={{padding:14,border:'1px solid #e5e7eb',borderRadius:12,background:'#f8fafc',marginBottom:14}}>
+          <strong>{employee.nama}</strong>
+          <div style={{fontSize:12,color:'#667085',marginTop:4}}>{employee.id_karyawan||'—'} · {employee.jabatan||'—'}</div>
+        </div>
+        <p style={{margin:'0 0 16px',color:'#667085',fontSize:13,lineHeight:1.5}}>{t('deactivation_details_desc')}</p>
+        <label>{t('inactive_reason')}
+          <select required value={reasonCode} onChange={e=>setReasonCode(e.target.value)} disabled={saving}>
+            <option value="">{t('select_deactivation_reason')}</option>
+            {deactivationReasons(t).map(reason=><option key={reason.value} value={reason.value}>{reason.label}</option>)}
+          </select>
+        </label>
+        <label>{t('effective_date')}
+          <input required type="date" value={effectiveDate} onChange={e=>setEffectiveDate(e.target.value)} disabled={saving}/>
+        </label>
+        <label>{t('deactivation_note')}
+          <textarea rows={4} value={note} onChange={e=>setNote(e.target.value)} placeholder={t('deactivation_note_placeholder')} disabled={saving}/>
+        </label>
+        <div style={{padding:12,border:'1px solid #f0c7c7',borderRadius:10,background:'#fff8f8',color:'#7a271a',fontSize:12,lineHeight:1.5}}>{t('deactivation_warning')}</div>
+        <div className="drawer-foot">
+          <button type="button" className="secondary" onClick={onClose} disabled={saving}>{t('cancel')}</button>
+          <button type="submit" className="primary" disabled={saving}>{saving?t('processing'):t('confirm_deactivate')}</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+}
+
 function InactiveEmployees({data,onEdit,onActivate}:{data:Karyawan[];onEdit:(k:Karyawan)=>void;onActivate:(k:Karyawan)=>void}) {
   const { t } = useTranslation();
   return <>
@@ -1836,19 +1938,20 @@ function InactiveEmployees({data,onEdit,onActivate}:{data:Karyawan[];onEdit:(k:K
     <div className="toolbar"><b>{data.length} {t('inactive_employees').toLowerCase()}</b></div>
     <div className="panel table-panel inactive-employee-panel">
       <div className="table-wrap"><table><thead><tr>
-        <th>{t('name')}</th><th>{t('employee_id')}</th><th>{t('position')}</th><th>{t('department')}</th><th>{t('employee_status')}</th><th>{t('actions')}</th>
+        <th>{t('name')}</th><th>{t('employee_id')}</th><th>{t('position')}</th><th>{t('department')}</th><th>{t('inactive_reason')}</th><th>{t('effective_date')}</th><th>{t('actions')}</th>
       </tr></thead><tbody>
         {data.length ? data.map(k => <tr key={k.id}>
           <td><div className="person"><div className="mini-avatar inactive-avatar">{k.nama?.[0]||'K'}</div><div><b>{k.nama||'—'}</b><small>{k.email||'—'}</small></div></div></td>
           <td>{k.id_karyawan||'—'}</td>
           <td>{k.jabatan||'—'}</td>
           <td>{k.departemen||'—'}</td>
-          <td><span className="status status-red-inactive">{t('inactive')}</span></td>
+          <td><div><b>{reasonLabelForCode(k.alasan_keluar_kode, t)}</b>{k.alasan_keluar&&<small>{k.alasan_keluar}</small>}</div></td>
+          <td>{k.tanggal_keluar||'—'}</td>
           <td><div className="row-actions inactive-actions">
             <button className="link-btn" type="button" onClick={()=>onEdit(k)}>{t('edit_data')}</button>
             <button className="secondary activate-btn" type="button" onClick={()=>onActivate(k)}>{t('activate_employee')}</button>
           </div></td>
-        </tr>) : <Empty cols={6}/>}</tbody></table></div>
+        </tr>) : <Empty cols={7}/>}</tbody></table></div>
     </div>
   </>;
 }
@@ -1981,7 +2084,10 @@ function EmployeeEditor({
     gaji_pokok: String(employee.gaji_pokok || 0),
     bank_name: employee.bank_name || '',
     bank_account: employee.bank_account || '',
-    status_aktif: employee.status_aktif !== false
+    status_aktif: employee.status_aktif !== false,
+    tanggal_keluar: employee.tanggal_keluar || '',
+    alasan_keluar_kode: employee.alasan_keluar_kode || '',
+    alasan_keluar: employee.alasan_keluar || ''
   });
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -2077,6 +2183,17 @@ function EmployeeEditor({
       return;
     }
 
+    if (!f.status_aktif) {
+      if (!f.alasan_keluar_kode) {
+        await appAlert(t('deactivation_reason_required'));
+        return;
+      }
+      if (!f.tanggal_keluar) {
+        await appAlert(t('deactivation_date_required'));
+        return;
+      }
+    }
+
     setSaving(true);
 
     let uploadedPhotoPath = '';
@@ -2086,6 +2203,9 @@ function EmployeeEditor({
         ...f,
         id_karyawan: f.id_karyawan.trim().toUpperCase(),
         gaji_pokok: Number(f.gaji_pokok || 0),
+        tanggal_keluar: f.status_aktif ? null : f.tanggal_keluar,
+        alasan_keluar_kode: f.status_aktif ? null : f.alasan_keluar_kode,
+        alasan_keluar: f.status_aktif ? null : (f.alasan_keluar.trim() || null),
       };
 
       const oldPhotoPath = employee.foto_url || '';
@@ -2495,10 +2615,65 @@ ${error?.message || 'Terjadi kesalahan.'}`
             <input
               type="checkbox"
               checked={f.status_aktif}
-              onChange={e => setField('status_aktif', e.target.checked)}
+              onChange={e => {
+                const next = e.target.checked;
+                setF(prev => ({
+                  ...prev,
+                  status_aktif: next,
+                  tanggal_keluar: next ? '' : (prev.tanggal_keluar || isoToday()),
+                  alasan_keluar_kode: next ? '' : (prev.alasan_keluar_kode || 'other'),
+                  alasan_keluar: next ? '' : prev.alasan_keluar,
+                }));
+              }}
               disabled={saving}
             />
           </label>
+
+          {!f.status_aktif && (
+            <div style={{
+              marginTop: 8,
+              padding: 16,
+              border: '1px solid #f0c7c7',
+              borderRadius: 12,
+              background: '#fff8f8',
+              gridColumn: '1 / -1',
+            }}>
+              <strong style={{display:'block', marginBottom:8}}>{t('deactivation_details')}</strong>
+              <p style={{margin:'0 0 14px', color:'#667085', fontSize:12}}>{t('deactivation_details_desc')}</p>
+              <label>
+                {t('inactive_reason')}
+                <select
+                  required={!f.status_aktif}
+                  value={f.alasan_keluar_kode || ''}
+                  onChange={e => setField('alasan_keluar_kode', e.target.value)}
+                  disabled={saving}
+                >
+                  <option value="">{t('select_deactivation_reason')}</option>
+                  {deactivationReasons(t).map(reason => <option key={reason.value} value={reason.value}>{reason.label}</option>)}
+                </select>
+              </label>
+              <label>
+                {t('effective_date')}
+                <input
+                  type="date"
+                  required={!f.status_aktif}
+                  value={f.tanggal_keluar}
+                  onChange={e => setField('tanggal_keluar', e.target.value)}
+                  disabled={saving}
+                />
+              </label>
+              <label style={{gridColumn:'1 / -1'}}>
+                {t('deactivation_note')}
+                <textarea
+                  rows={3}
+                  value={f.alasan_keluar}
+                  onChange={e => setField('alasan_keluar', e.target.value)}
+                  placeholder={t('deactivation_note_placeholder')}
+                  disabled={saving}
+                />
+              </label>
+            </div>
+          )}
         </div>
 
         <div className="drawer-foot">

@@ -1,14 +1,14 @@
 const CSS = `
 /* =====================================================
    PROJECT BY TIRTA — FINAL COSMIC SURFACE
-   Background selalu tajam.
+   Background selalu tajam dan menggunakan aset desktop HD.
    Tidak ada surface putih pada aplikasi.
    ===================================================== */
 
 html,
 body,
 #root {
-  background-color: #02050a !important;
+  background-color: var(--pt-bg-deep, #02050a) !important;
 }
 
 /* =====================================================
@@ -80,6 +80,18 @@ html[data-cosmic-theme] .employee-portal-cosmic::after {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   animation: none !important;
+}
+
+/* =====================================================
+   DESKTOP: LANDSCAPE 4K BACKGROUND
+   Mobile tetap memakai komposisi portrait.
+   ===================================================== */
+@media (min-width: 769px) {
+  html[data-cosmic-theme="sun"] :where(.talenta-shell, .talenta-main, .admin-page-frame, .public-home, .unified-login-page) { background-image: url("/cosmic-desktop-wide/cosmic-sun.webp") !important; }
+  html[data-cosmic-theme="moon"] :where(.talenta-shell, .talenta-main, .admin-page-frame, .public-home, .unified-login-page) { background-image: url("/cosmic-desktop-wide/cosmic-moon.webp") !important; }
+  html[data-cosmic-theme="galaxy"] :where(.talenta-shell, .talenta-main, .admin-page-frame, .public-home, .unified-login-page) { background-image: url("/cosmic-desktop-wide/cosmic-galaxy.webp") !important; }
+  html[data-cosmic-theme="blackhole"] :where(.talenta-shell, .talenta-main, .admin-page-frame, .public-home, .unified-login-page) { background-image: url("/cosmic-desktop-wide/cosmic-blackhole.webp") !important; }
+  html[data-cosmic-theme="nebula"] :where(.talenta-shell, .talenta-main, .admin-page-frame, .public-home, .unified-login-page) { background-image: url("/cosmic-desktop-wide/cosmic-nebula.webp") !important; }
 }
 
 /* =====================================================

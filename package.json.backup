@@ -42,10 +42,5 @@
     "oxlint": "^1.81.0",
     "typescript": "~6.0.2",
     "vite": "^8.2.2"
-  },
-  "overrides": {
-    "@capacitor/cli": {
-      "xcode": "github:apache/cordova-node-xcode#1edf7059d347beb0e339d1cb4741581352b43138"
-    }
   }
 }
