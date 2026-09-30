@@ -5,13 +5,13 @@ import { getPublicAppTheme } from '../../../lib/userPreferences';
 import { applyCosmicTheme } from '../../../theme/professionalTheme';
 
 import moonLogo from '../../../assets/moon-logo.svg';
-import cosmicBackground from '../../../assets/cosmic-background.svg';
+import AndroidCosmicBackground from './AndroidCosmicBackground';
 import SuggestionBox from '../../../features/employee-feedback/SuggestionBox';
 import EmployeeAnnouncementCenter from '../../../features/announcements/EmployeeAnnouncementCenter';
 import type { SuggestionDraft } from '../../../features/employee-feedback/types';
 
 type Employee={id:string;id_karyawan:string;nama:string;email:string;jabatan?:string|null;departemen?:string|null;status_karyawan?:string|null;status_aktif?:boolean|null;tanggal_masuk?:string|null};
-type Tab='home'|'menu'|'announcements'|'attendance'|'leave'|'overtime'|'schedule'|'payslip'|'feedback'|'profile';
+type Tab='home'|'announcements'|'attendance'|'leave'|'overtime'|'schedule'|'payslip'|'jobs'|'feedback'|'profile';
 type Geo={lat:number;lng:number;accuracy:number};
 const money=(n:number,locale='id-ID')=>new Intl.NumberFormat(locale,{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n||0);
 const jakartaNow=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
@@ -37,6 +37,54 @@ export default function PortalKaryawan({onLogout}:{onLogout?:()=>void}){
   const { t, lang } = useTranslation();
  const locale=lang==='id'?'id-ID':lang==='ja'?'ja-JP':lang==='ko'?'ko-KR':'zh-CN';
  const [user,setUser]=useState<any>(null),[employee,setEmployee]=useState<Employee|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[tab,setTab]=useState<Tab>('home');
+
+  type JobOpening = {
+    id: string;
+    opening_no?: string | null;
+    posisi?: string | null;
+    departemen?: string | null;
+    lokasi?: string | null;
+    employment_type?: string | null;
+    headcount?: number | null;
+    salary_min?: number | null;
+    salary_max?: number | null;
+    description?: string | null;
+    requirements?: string | null;
+    status?: string | null;
+    created_at?: string | null;
+  };
+
+  const [jobOpenings,setJobOpenings]=useState<JobOpening[]>([]);
+  const [jobsLoading,setJobsLoading]=useState(false);
+
+  useEffect(()=>{
+    if(tab!=='jobs') return;
+    let active=true;
+
+    const loadJobOpenings=async()=>{
+      setJobsLoading(true);
+      const {data}=await supabase
+        .from('hris_recruitment_openings_v25')
+        .select('*')
+        .eq('status','Open')
+        .order('created_at',{ascending:false});
+
+      if(active){
+        setJobOpenings((data||[]) as JobOpening[]);
+        setJobsLoading(false);
+      }
+    };
+
+    void loadJobOpenings();
+    const timer=window.setInterval(()=>void loadJobOpenings(),30000);
+
+    return ()=>{
+      active=false;
+      window.clearInterval(timer);
+    };
+  },[tab]);
+
+
  const [workNow,setWorkNow]=useState(0);
  useEffect(()=>{ if(tab!=='home') return; setWorkNow(jakartaClockSeconds()); const timer=window.setInterval(()=>setWorkNow(jakartaClockSeconds()),1000); return ()=>window.clearInterval(timer); },[tab]);
  const [attendance,setAttendance]=useState<any[]>([]),[leaves,setLeaves]=useState<any[]>([]),[balances,setBalances]=useState<any[]>([]),[payroll,setPayroll]=useState<any[]>([]),[lines,setLines]=useState<Record<string,any[]>>({}),[schedule,setSchedule]=useState<any[]>([]),[otRequests,setOtRequests]=useState<any[]>([]),[announcements,setAnnouncements]=useState<any[]>([]),[announcementReadIds,setAnnouncementReadIds]=useState<string[]>([]),[payslipReadIds,setPayslipReadIds]=useState<string[]>([]),[feedbackReadIds,setFeedbackReadIds]=useState<string[]>([]);
@@ -281,7 +329,7 @@ const canClockOut=!!todayAtt?.jam_masuk&&!todayAtt?.jam_pulang;
  const actualOut=parseClockSeconds(todayAtt?.jam_pulang);
  const liveWorkSeconds=actualIn===null?0:Math.max(0,(actualOut??workNow)-actualIn);
  const workProgress=Math.max(0,Math.min(1,liveWorkSeconds/plannedDuration));
- type MenuTarget=Exclude<Tab,'home'|'menu'>;
+ type MenuTarget=Exclude<Tab,'home'>;
  const menuItems:{key:MenuTarget;icon:string;title:string;sub:string;badge?:number}[]=[
   {key:'payslip',icon:'▣',title:t('payroll'),sub:t('portal_salary_detail'),badge:payslipUnread},
   {key:'leave',icon:'☂',title:t('leave'),sub:t('leave_request'),badge:leavePending},
@@ -301,17 +349,14 @@ const canClockOut=!!todayAtt?.jam_masuk&&!todayAtt?.jam_pulang;
  if(loading&&!employee&&!user)return <PortalLoadingScreen/>;
  if(!employee)return <div className="employee-login"><div className="employee-login-card"><div className="employee-logo">M</div><div className="login-copy"><span className="portal-eyebrow">{t('portal_account_link')}</span><h2>{t('portal_account_unlinked')}</h2><p>{t('portal_account_unlinked_desc')}</p></div><button className="portal-secondary" onClick={logout}>{t('logout')}</button></div></div>;
  if(employee.status_aktif===false)return <div className="employee-login"><div className="employee-login-card"><div className="employee-logo">M</div><div className="login-copy"><span className="portal-eyebrow">{t('portal_account_status')}</span><h2>{t('portal_waiting_verification')}</h2><p>{t('portal_waiting_verification_desc')}</p></div><button className="portal-secondary" onClick={logout}>{t('logout')}</button></div></div>;
- return <div className={`employee-portal employee-portal-cosmic pt-cosmic-shell${tab==='home'?' pt-home-active':''}`} style={{backgroundImage:`url(${cosmicBackground})`}}>
-  {tab!=='home'&&<header className="employee-topbar pt-feature-topbar">
-   <button type="button" className="pt-back-button" onClick={()=>setTab('home')} aria-label={t('back')}>←</button>
-   <div className="pt-feature-topbar-title"><b>{tabsTitle(tab,t)}</b></div>
-  </header>}
+ return <div className={`employee-portal employee-portal-cosmic pt-cosmic-shell pt-android-cosmic-active${tab==='home'?' pt-home-active':''}`}>
+  <AndroidCosmicBackground />
   <main className="employee-page">
    {notice&&<div className="portal-info pt-text-notice">{notice}<button className="portal-link" onClick={()=>setNotice('')}>{t('close')}</button></div>}
    {error&&<div className="portal-error pt-text-notice">{error}<button className="portal-link" onClick={()=>setError('')}>{t('close')}</button></div>}
 
    {tab==='home'&&<>
-    <section className="pt-home-intro">
+<section className="pt-home-intro">
      <span className="portal-eyebrow">{t('welcome')}</span>
      <h1>{employee.nama}</h1>
      <p>{employee.jabatan||t('employee')} · {employee.departemen||t('department')}</p>
@@ -326,11 +371,9 @@ const canClockOut=!!todayAtt?.jam_masuk&&!todayAtt?.jam_pulang;
      <div className="attendance-actions pt-home-attendance-actions"><button className="portal-secondary" type="button" onClick={()=>cameraOn?takeSelfie():startCamera()} disabled={cameraOn&&!cameraReady}>{cameraOn?(cameraReady?t('portal_take_selfie'):t('portal_camera_prepare')):t('portal_open_camera')}</button><button className="portal-secondary" type="button" onClick={getGeo} disabled={geoLoading}>{geoLoading?t('portal_getting_gps'):geo?t('portal_gps_accuracy').replace('{meters}',String(Math.round(geo.accuracy))):t('portal_get_gps')}</button></div>
      <div className="attendance-actions pt-home-attendance-actions"><button className="portal-primary" disabled={clockBusy||!canClockIn} onClick={clockIn}>{clockBusy?t('portal_processing'):t('check_in')}</button><button className="portal-primary" disabled={clockBusy||!canClockOut} onClick={clockOut}>{clockBusy?t('portal_processing'):t('check_out')}</button></div>
     </section>
-    <section className="pt-feature-section pt-home-menu-section"><div className="pt-section-heading pt-heading-plain"><div><span className="portal-eyebrow">{t('menu')}</span><h2>{t('portal_my_services')}</h2></div></div>{menuGrid(true)}</section>
+    <section className="pt-feature-section pt-home-menu-section"><div className="pt-section-heading pt-heading-plain"><div><h2>{t('portal_my_services')}</h2></div></div>{menuGrid(true)}</section>
 
    </>}
-
-   {tab==='menu'&&<section className="pt-menu-page"><div className="pt-page-heading"><span className="portal-eyebrow">{t('menu')}</span><h1>{t('portal_my_services')}</h1><p>{t('portal_services_desc')}</p></div>{menuGrid()}</section>}
 
    {tab==='announcements'&&<EmployeeAnnouncementCenter announcements={announcements} onRead={async(id)=>{const {data:{user:u}}=await supabase.auth.getUser();if(!u)return;const {error:e1}=await supabase.from('hris_announcement_reads').upsert({announcement_id:id,user_id:u.id,read_at:new Date().toISOString()},{onConflict:'announcement_id,user_id'});if(e1){setError(e1.message);return}setAnnouncements(x=>x.map(a=>a.id===id?{...a,isRead:true}:a));setAnnouncementReadIds(x=>x.includes(id)?x:[...x,id])}}/>}
 
@@ -342,63 +385,79 @@ const canClockOut=!!todayAtt?.jam_masuk&&!todayAtt?.jam_pulang;
 
    {tab==='schedule'&&<section className="portal-card table-card pt-page-card"><div className="card-title"><div><span className="card-kicker">{t('work_schedule')}</span><h2>{t('portal_upcoming_schedule')}</h2></div></div><div className="schedule-grid">{schedule.map(s=><div className="schedule-item" key={s.id}><small>{dateLabel(s.tanggal,locale)}</small><b>{s.hris_shift?.nama||t('portal_shift_undefined')}</b><span>{s.hris_shift?.jam_masuk||'--:--'} — {s.hris_shift?.jam_pulang||'--:--'}</span><em>{s.status}</em></div>)}{!schedule.length&&<div className="empty-state"><h2>{t('portal_no_schedule')}</h2><p>{t('portal_schedule_unpublished')}</p></div>}</div></section>}
 
+
+   {tab==='jobs'&&<section className="pt-jobs-page">
+    <div className="pt-jobs-toolbar">
+     <button type="button" className="pt-jobs-back" onClick={()=>setTab('home')}>Kembali</button>
+     <div>
+      <strong>Lowongan Kerja</strong>
+      <span>Kesempatan kerja yang sedang dibuka oleh HR</span>
+     </div>
+    </div>
+
+    {jobsLoading ?
+      <div className="pt-jobs-empty">Memuat lowongan...</div>
+    :
+      jobOpenings.length===0 ?
+      <div className="pt-jobs-empty">
+       <strong>Belum ada lowongan aktif</strong>
+       <span>Lowongan yang dibuka HR akan muncul di sini.</span>
+      </div>
+    :
+      <div className="pt-jobs-list">
+       {jobOpenings.map(job=>{
+        const money=(v:number|null|undefined)=>
+          typeof v==='number' && v>0
+            ? new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(v)
+            : '-';
+
+        return <article className="pt-job-card" key={job.id}>
+         <div className="pt-job-card-top">
+          <div>
+           <span className="pt-job-badge">OPEN</span>
+           <h3>{job.posisi||'Posisi tersedia'}</h3>
+          </div>
+          <span className="pt-job-code">{job.opening_no||''}</span>
+         </div>
+
+         <div className="pt-job-meta">
+          <span>Departemen: {job.departemen||'Umum'}</span>
+          <span>Lokasi: {job.lokasi||'-'}</span>
+          <span>Tipe: {job.employment_type||'-'}</span>
+          <span>Posisi: {job.headcount||1}</span>
+         </div>
+
+         <div className="pt-job-salary">
+          {money(job.salary_min)} - {money(job.salary_max)}
+         </div>
+
+         {job.description ? <p>{job.description}</p> : null}
+
+         {job.requirements ?
+          <div className="pt-job-requirements">
+           <strong>Persyaratan</strong>
+           <div>{job.requirements}</div>
+          </div>
+         : null}
+        </article>;
+       })}
+      </div>
+    }
+   </section>}
+
    {tab==='payslip'&&<section className="payslip-grid pt-page-grid"><PayslipReadTracker payroll={payroll} onRead={setPayslipReadIds}/>{payroll.map(p=><div className="portal-card payslip-card pt-page-card" key={p.id}><div className="card-title"><div><span className="card-kicker">{t('portal_salary_slip')}</span><h2>{t('period')} {p.periode}</h2></div><span className="status-badge">{p.status}</span></div><div className="salary-value">{money(Number(p.gaji_bersih||0),locale)}</div><p>{t('portal_net_salary')}</p><div className="salary-lines">{(lines[p.id]||[]).map(x=><div key={x.id}><span>{x.nama}</span><b>{money(Number(x.amount||0),locale)}</b></div>)}</div><button className="portal-secondary full" onClick={()=>printPayslip(p.id)}>{t('portal_print_pdf')}</button></div>)}{!payroll.length&&<div className="portal-card empty-state pt-page-card"><div className="empty-icon">P</div><h2>{t('portal_no_payslip')}</h2><p>{t('portal_payslip_desc')}</p></div>}{detailPayroll&&<div className="print-slip" id="print-slip">{(()=>{const p=payroll.find(x=>x.id===detailPayroll);return p?<><div className="print-head"><b>Project by Tirta</b><span>{t('portal_salary_slip')} · {t('employee')}</span></div><h2>{t('payroll_payslip')} · {p.periode}</h2><p>{employee.nama} · {employee.id_karyawan}</p><hr/><div className="print-lines">{(lines[p.id]||[]).map(x=><div key={x.id}><span>{x.nama}</span><b>{money(Number(x.amount||0),locale)}</b></div>)}<div className="total"><span>{t('portal_net_salary')}</span><b>{money(Number(p.gaji_bersih||0),locale)}</b></div></div></>:null})()}</div>}</section>}
 
    {tab==='feedback'&&<><FeedbackReadTracker feedbacks={feedbacks} onRead={setFeedbackReadIds}/><section className="portal-grid pt-page-grid"><SuggestionBox onSubmit={submitFeedback}/><div className="portal-card info-card pt-page-card"><div className="card-title"><div><span className="card-kicker">{t('feedback_inbox')}</span><h2>{t('portal_my_feedback')}</h2></div></div><div className="request-list">{feedbacks.map(x=><div key={x.id}><div><b>{x.judul}</b><small>{x.kategori} · {new Date(x.created_at).toLocaleDateString(locale)}</small>{x.tanggapan_hr&&<small><strong>{t('portal_hr_response')}</strong> {x.tanggapan_hr}</small>}</div><span className="status-badge">{x.status}</span></div>)}{!feedbacks.length&&<p className="muted">{t('portal_no_feedback')}</p>}</div></div></section></>}
 
-   {tab==='profile'&&<section className="portal-grid pt-page-grid"><div className="portal-card info-card pt-page-card"><div className="portal-profile"><div className="portal-avatar">{employee.nama.charAt(0).toUpperCase()}</div><div><h3>{employee.nama}</h3><p>{employee.jabatan||t('employee')} · {employee.departemen||'-'}</p></div></div><div className="info-list"><div><small>{t('email')}</small><b>{employee.email||'-'}</b></div><div><small>{t('employee_id')}</small><b>{employee.id_karyawan}</b></div><div><small>Status</small><b>{employee.status_karyawan||t('active')}</b></div></div><button type="button" className="portal-secondary pt-profile-logout" onClick={logout}>{t('logout')}</button></div><div className="portal-card info-card pt-page-card"><div className="card-title"><div><span className="card-kicker">{t('portal_profile_change')}</span><h2>{t('request_data_change')}</h2></div></div><form className="employee-form" onSubmit={submitProfile}><label>{t('data_to_change')}<select value={profileForm.field_name} onChange={e=>setProfileForm({...profileForm,field_name:e.target.value})}><option value="no_telp">{t('phone_number')}</option><option value="alamat_rumah">{t('home_address')}</option><option value="email">Email</option></select></label><label>{t('new_value')}<input value={profileForm.new_value} onChange={e=>setProfileForm({...profileForm,new_value:e.target.value})} required/></label><label>{t('reason')}<textarea value={profileForm.reason} onChange={e=>setProfileForm({...profileForm,reason:e.target.value})}/></label><button className="portal-primary">{t('send_request')}</button></form></div></section>}
+   {tab==='profile'&&<section className="portal-grid pt-page-grid"><div className="portal-card info-card pt-page-card pt-profile-flat"><div className="portal-profile"><div className="portal-avatar">{employee.nama.charAt(0).toUpperCase()}</div><div><h3>{employee.nama}</h3><p>{employee.jabatan||t('employee')} · {employee.departemen||'-'}</p></div></div><div className="info-list"><div><small>{t('email')}</small><b>{employee.email||'-'}</b></div><div><small>{t('employee_id')}</small><b>{employee.id_karyawan}</b></div><div><small>Status</small><b>{employee.status_karyawan||t('active')}</b></div></div><button type="button" className="portal-secondary pt-profile-logout" onClick={logout}>{t('logout')}</button></div><div className="portal-card info-card pt-page-card pt-profile-flat"><div className="card-title"><div><span className="card-kicker">{t('portal_profile_change')}</span><h2>{t('request_data_change')}</h2></div></div><form className="employee-form" onSubmit={submitProfile}><label>{t('data_to_change')}<select value={profileForm.field_name} onChange={e=>setProfileForm({...profileForm,field_name:e.target.value})}><option value="no_telp">{t('phone_number')}</option><option value="alamat_rumah">{t('home_address')}</option><option value="email">Email</option></select></label><label>{t('new_value')}<input value={profileForm.new_value} onChange={e=>setProfileForm({...profileForm,new_value:e.target.value})} required/></label><label>{t('reason')}<textarea value={profileForm.reason} onChange={e=>setProfileForm({...profileForm,reason:e.target.value})}/></label><button className="portal-primary">{t('send_request')}</button></form></div></section>}
   </main>
   <nav className="pt-bottom-nav" aria-label="Primary">
-   <button type="button" className={tab==='home'?'active':''} onClick={()=>setTab('home')}><span>⌂</span><small>{t('home')}</small></button>
+   <button type="button" className={tab==='home'?'active':''} onClick={()=>setTab('home')}><span className="pt-nav-home-icon"><img src={moonLogo} alt="" /></span><small>{t('home')}</small></button>
    <button type="button" className={tab==='attendance'?'active':''} onClick={()=>setTab('attendance')}><span>◉</span><small>{t('attendance')}</small></button>
-   <button type="button" className={tab==='menu'?'active':''} onClick={()=>setTab('menu')}><span>▦</span><small>{t('menu')}</small></button>
+   <button type="button" className={tab==='jobs'?'active':''} onClick={()=>setTab('jobs')}><span className="pt-nav-jobs-icon" aria-hidden="true">⌂</span><small>Lowongan</small></button>
    <button type="button" className={tab==='profile'?'active':''} onClick={()=>setTab('profile')}><span>♙</span><small>{t('profile')}</small></button>
   </nav>
  </div>;
-}
-
-
-function tabsTitle(tab: Tab, t: (key:string)=>string) {
-  switch(tab){
-    case 'attendance': return t('attendance');
-    case 'menu': return t('menu');
-    case 'announcements': return t('announcement_center');
-    case 'leave': return t('leave');
-    case 'overtime': return t('overtime');
-    case 'schedule': return t('work_schedule');
-    case 'payslip': return t('payroll');
-    case 'feedback': return t('feedback_inbox');
-    case 'profile': return t('profile');
-    default: return t('home');
-  }
-}
-
-function FeedbackReadTracker({feedbacks,onRead}:{feedbacks:any[];onRead:(ids:string[])=>void}){
- useEffect(()=>{
-  const fresh=feedbacks.filter(x=>x.status==='Baru').map(x=>String(x.id));
-  if(!fresh.length)return;
-  const key='moonx_feedback_read_ids';
-  let saved:string[]=[];
-  try{saved=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(saved))saved=[];}catch{saved=[]}
-  const next=[...new Set([...saved,...fresh])];
-  localStorage.setItem(key,JSON.stringify(next));
-  onRead(next);
- },[feedbacks,onRead]);
- return null;
-}
-
-function PayslipReadTracker({payroll,onRead}:{payroll:any[];onRead:(ids:string[])=>void}){
- useEffect(()=>{
-  const approved=payroll.filter(x=>x.status==='Disetujui').map(x=>String(x.id));
-  if(!approved.length)return;
-  const key='moonx_payslip_read_ids';
-  let saved:string[]=[];
-  try{saved=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(saved))saved=[];}catch{saved=[]}
-  const next=[...new Set([...saved,...approved])];
-  localStorage.setItem(key,JSON.stringify(next));
-  onRead(next);
- },[payroll,onRead]);
- return null;
 }
 
 function PortalLoadingScreen(){
@@ -406,9 +465,43 @@ function PortalLoadingScreen(){
  return <main className="employee-loading-screen" role="status" aria-live="polite">
   <section className="employee-loading-card">
    <div className="employee-loading-logo"><img src={moonLogo} alt="Project by Tirta"/></div>
-   <div className="employee-loading-copy"><strong>{t('portal_login_setup')}</strong><span>{t('portal_loading')}</span></div>
+   <div className="employee-loading-copy">
+    <strong>Project by Tirta</strong>
+    <span>{t('portal_login_setup')}</span>
+   </div>
    <div className="employee-loading-bar" aria-hidden="true"><i/></div>
    <div className="employee-loading-skeletons" aria-hidden="true"><i/><i/><i/></div>
   </section>
  </main>
+}
+
+
+
+
+function PayslipReadTracker({
+  payroll,
+  onRead,
+}: {
+  payroll: Array<{ id: string }>;
+  onRead: (ids: string[]) => void;
+}) {
+  useEffect(() => {
+    onRead((payroll || []).map(x => String(x.id)));
+  }, [payroll, onRead]);
+
+  return null;
+}
+
+function FeedbackReadTracker({
+  feedbacks,
+  onRead,
+}: {
+  feedbacks: Array<{ id: string }>;
+  onRead: (ids: string[]) => void;
+}) {
+  useEffect(() => {
+    onRead((feedbacks || []).map(x => String(x.id)));
+  }, [feedbacks, onRead]);
+
+  return null;
 }
