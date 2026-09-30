@@ -62,6 +62,24 @@ export function saveCustomThemeCache(userId: string, value: unknown): void {
   try { safeSet(CUSTOM_THEME_PREFIX + userId, JSON.stringify(value)); } catch { /* cache only */ }
 }
 
+
+const PUBLIC_THEME_CACHE_KEY = 'project-tirta-public-theme';
+
+export async function getPublicAppTheme(): Promise<CosmicThemeId> {
+  const cached = safeGet(PUBLIC_THEME_CACHE_KEY);
+  const fallback: CosmicThemeId = isTheme(cached) ? cached : 'sun';
+  try {
+    const { data, error } = await supabase.rpc('hris_get_public_app_theme');
+    if (!error && isTheme(data)) {
+      safeSet(PUBLIC_THEME_CACHE_KEY, data);
+      return data;
+    }
+  } catch (error) {
+    console.warn('Unable to load public app theme:', error);
+  }
+  return fallback;
+}
+
 export async function getEmployeePortalTheme(): Promise<CosmicThemeId> {
   try {
     const { data, error } = await supabase.rpc('hris_get_employee_portal_theme');

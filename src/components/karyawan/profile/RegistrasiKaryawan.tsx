@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import AndroidCosmicBackground from '../dashboard/AndroidCosmicBackground';
 import moonLogo from '../../../assets/moon-logo.png';
+import cosmicBackground from '../../../assets/cosmic-background.svg';
 import { supabase } from '../../../lib/supabase/client';
 import { useTranslation } from '../../../locales/LanguageContext';
+
+const IS_ANDROID_APP = Capacitor.getPlatform() === 'android';
 
 interface RegistrasiKaryawanProps {
   onBack?: () => void;
@@ -288,7 +293,11 @@ export default function RegistrasiKaryawan({ onBack }: RegistrasiKaryawanProps) 
 
   if (success) {
     return (
-      <div className="registration-page">
+      <div
+      className={`registration-page${IS_ANDROID_APP ? ' pt-cosmic-register' : ''}`}
+      style={IS_ANDROID_APP ? { backgroundImage: `url(${cosmicBackground})` } : undefined}
+    >
+        <AndroidCosmicBackground />
         <div className="registration-success">
           <div className="registration-logo">
             <img src={moonLogo} alt="Project by Tirta" />
@@ -316,13 +325,14 @@ export default function RegistrasiKaryawan({ onBack }: RegistrasiKaryawanProps) 
   }
 
   return (
-    <div className="registration-page">
+    <div className="registration-page pt-cosmic-register">
+        <AndroidCosmicBackground />
       <div className="registration-shell">
 
         <div className="registration-brand">
           <div className="registration-logo">
             <img
-              src="/sakura-moon.jpg"
+              src={moonLogo}
               alt="Project by Tirta"
             />
           </div>
