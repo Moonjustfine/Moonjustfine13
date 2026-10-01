@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useTranslation } from '../../../locales/LanguageContext';
 import type { Karyawan } from './types';
 import { supabase } from '../../../lib/supabase/client';
@@ -40,6 +41,8 @@ type Palette = {
 };
 
 const ID_CARD_STORAGE_KEY = 'project-tirta-id-card-design-v2';
+const ID_CARD_ORIENTATION_STORAGE_KEY = 'project-tirta-id-card-orientation-v1';
+type IDCardOrientation = 'vertical' | 'horizontal';
 
 const ID_CARD_DESIGN_THEMES: Record<
   string,
@@ -150,7 +153,7 @@ function imageFromFile(file: File) {
   });
 }
 
-function CardArtwork({
+function CardArtworkVertical({
   employee,
   side,
   design,
@@ -165,6 +168,90 @@ function CardArtwork({
   photoOverride?: string;
   verificationToken?: string;
 }) {
+  const photo = photoOverride || employee.foto_url || employee.foto || employee.photo_url || '';
+  const id = safeId(employee);
+  const width = 540;
+  const height = 856;
+  const palette = ID_CARD_DESIGN_THEMES[design.theme].palette;
+  const logo = design.logoDataUrl || logoUrl;
+  const gradientId = `pt-card-vertical-${design.theme}-${side}`.replace(/[^a-z0-9-]/gi, '');
+  const photoSvg = photo
+    ? `<image href="${safeImageHref(photo)}" x="96" y="154" width="348" height="420" preserveAspectRatio="xMidYMid slice"/>`
+    : `<rect x="96" y="154" width="348" height="420" rx="24" fill="${palette.body2}" stroke="${palette.line}" stroke-width="2"/><text x="270" y="390" text-anchor="middle" font-size="78" font-weight="700" fill="${palette.accentSoft}">${escapeXml(initials(employee.nama))}</text>`;
+
+  if (side === 'back') {
+    const qr = design.showQr && verificationToken
+      ? `<rect x="126" y="164" width="288" height="288" rx="24" fill="#ffffff" stroke="${palette.accent}" stroke-width="4"/><g transform="translate(144 182) scale(1.72)">${qrMatrixToSvg(buildVerifyUrl(verificationToken), { size: 150, margin: 4, foreground: '#000000', background: '#ffffff', ecclevel: 'M' })}</g><text x="270" y="488" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="${palette.accentSoft}">SCAN UNTUK VERIFIKASI</text>`
+      : `<rect x="126" y="164" width="288" height="288" rx="24" fill="${palette.body2}" stroke="${palette.line}" stroke-width="2"/><text x="270" y="298" text-anchor="middle" font-family="Arial" font-size="14" fill="${palette.muted}">QR VERIFIKASI</text><text x="270" y="325" text-anchor="middle" font-family="Arial" font-size="12" fill="${palette.muted}">menunggu token</text>`;
+    const barcode = design.showBarcode
+      ? `<text x="46" y="542" font-family="Arial" font-size="12" font-weight="700" fill="${palette.accentSoft}">CODE 128</text><g transform="translate(46 555)">${code128SvgMarkup(id, 448, 64)}</g><text x="46" y="642" font-family="Arial" font-size="17" font-weight="700" fill="${palette.text}">${escapeXml(id)}</text>`
+      : `<text x="46" y="570" font-family="Arial" font-size="12" fill="${palette.muted}">ID KARYAWAN</text><text x="46" y="602" font-family="Arial" font-size="24" font-weight="700" fill="${palette.text}">${escapeXml(id)}</text>`;
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <defs><linearGradient id="${gradientId}" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="${palette.top}"/><stop offset="1" stop-color="${palette.top2}"/></linearGradient></defs>
+      <rect width="540" height="856" rx="34" fill="${palette.body}"/>
+      <rect width="540" height="126" rx="34" fill="url(#${gradientId})"/><rect y="92" width="540" height="34" fill="url(#${gradientId})"/>
+      <rect x="1" y="1" width="538" height="854" rx="33" fill="none" stroke="${palette.accent}" stroke-width="2" opacity=".92"/>
+      <image href="${safeImageHref(logo)}" x="40" y="28" width="58" height="58" preserveAspectRatio="xMidYMid meet"/>
+      <text x="116" y="56" font-family="Arial" font-size="${fittedFontSize(design.companyName, 22, 13, 370)}" font-weight="700" fill="${palette.text}">${escapeXml(design.companyName)}</text>
+      <text x="116" y="83" font-family="Arial" font-size="11" fill="${palette.accentSoft}">KARTU IDENTITAS KARYAWAN</text>
+      <text x="46" y="115" font-family="Arial" font-size="9" fill="${palette.muted}">Sisi belakang • verifikasi kartu</text>
+      <text x="46" y="148" font-family="Arial" font-size="11" font-weight="700" fill="${palette.accentSoft}">VERIFIKASI DIGITAL</text>
+      ${qr}
+      ${barcode}
+      <rect x="46" y="688" width="448" height="1" fill="${palette.line}"/>
+      <text x="46" y="718" font-family="Arial" font-size="10" fill="${palette.muted}">Jangan dipinjamkan. QR memvalidasi status kartu</text>
+      <text x="46" y="737" font-family="Arial" font-size="10" fill="${palette.muted}">pada sistem resmi Project by Tirta.</text>
+      <text x="46" y="791" font-family="Arial" font-size="11" fill="${palette.muted}">Status kartu</text>
+      <text x="494" y="791" text-anchor="end" font-family="Arial" font-size="12" font-weight="800" fill="${employee.status_aktif === false ? '#ff9eae' : palette.accentSoft}">${employee.status_aktif === false ? 'NONAKTIF' : 'AKTIF'}</text>
+      <text x="46" y="818" font-family="Arial" font-size="9" fill="${palette.muted}">Project by Tirta • Kartu identitas karyawan</text>
+    </svg>`;
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <defs><linearGradient id="${gradientId}" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="${palette.top}"/><stop offset="1" stop-color="${palette.top2}"/></linearGradient></defs>
+    <rect width="540" height="856" rx="34" fill="${palette.body}"/>
+    <rect width="540" height="126" rx="34" fill="url(#${gradientId})"/><rect y="92" width="540" height="34" fill="url(#${gradientId})"/>
+    <rect x="1" y="1" width="538" height="854" rx="33" fill="none" stroke="${palette.accent}" stroke-width="2" opacity=".92"/>
+    <image href="${safeImageHref(logo)}" x="40" y="28" width="58" height="58" preserveAspectRatio="xMidYMid meet"/>
+    <text x="116" y="56" font-family="Arial" font-size="${fittedFontSize(design.companyName, 22, 13, 370)}" font-weight="700" fill="${palette.text}">${escapeXml(design.companyName)}</text>
+    <text x="116" y="83" font-family="Arial" font-size="11" fill="${palette.accentSoft}">KARTU IDENTITAS KARYAWAN</text>
+    <text x="46" y="115" font-family="Arial" font-size="9" fill="${palette.muted}">Sisi depan • cocok untuk digantung di leher</text>
+    ${photoSvg}
+    <rect x="96" y="154" width="348" height="420" rx="24" fill="none" stroke="${palette.accent}" stroke-width="2"/>
+    <text x="46" y="620" font-family="Arial" font-size="11" font-weight="700" fill="${palette.accentSoft}">NAMA LENGKAP</text>
+    <text x="46" y="648" font-family="Arial" font-size="${fittedFontSize(employee.nama, 23, 14, 448)}" font-weight="700" fill="${palette.text}">${escapeXml(employee.nama || '-')}</text>
+    <text x="46" y="680" font-family="Arial" font-size="11" font-weight="700" fill="${palette.accentSoft}">JABATAN</text>
+    <text x="46" y="707" font-family="Arial" font-size="${fittedFontSize(employee.jabatan, 16, 11, 448)}" fill="${palette.text}">${escapeXml(employee.jabatan || '-')}</text>
+    <text x="46" y="738" font-family="Arial" font-size="11" font-weight="700" fill="${palette.accentSoft}">ID KARYAWAN</text>
+    <text x="46" y="764" font-family="Arial" font-size="20" font-weight="700" fill="${palette.text}">${escapeXml(id)}</text>
+    <text x="270" y="738" font-family="Arial" font-size="11" font-weight="700" fill="${palette.accentSoft}">DEPARTEMEN</text>
+    <text x="270" y="764" font-family="Arial" font-size="${fittedFontSize(employee.departemen, 14, 10, 224)}" fill="${palette.text}">${escapeXml(employee.departemen || '-')}</text>
+    <rect x="46" y="791" width="448" height="1" fill="${palette.line}"/>
+    <text x="46" y="818" font-family="Arial" font-size="9" fill="${palette.muted}">Status: ${employee.status_aktif === false ? 'NONAKTIF' : 'AKTIF'} • Project by Tirta</text>
+  </svg>`;
+}
+
+function CardArtwork({
+  employee,
+  side,
+  design,
+  logoUrl,
+  photoOverride,
+  verificationToken,
+  orientation,
+}: {
+  employee: Employee;
+  side: 'front' | 'back';
+  design: IDCardDesign;
+  logoUrl: string;
+  photoOverride?: string;
+  verificationToken?: string;
+  orientation?: IDCardOrientation;
+}) {
+  if (orientation === 'vertical') {
+    return CardArtworkVertical({ employee, side, design, logoUrl, photoOverride, verificationToken });
+  }
   const photo = photoOverride || employee.foto_url || employee.foto || employee.photo_url || '';
   const id = safeId(employee);
   const width = 856;
@@ -258,8 +345,13 @@ const EmployeeBatchRow = memo(function EmployeeBatchRow({
 export default function IDCardModule({ employees, companyName, logoUrl }: Props) {
   const { t } = useTranslation();
   const eligibleEmployees = useMemo(() => employees.filter(e => e.status_aktif === true), [employees]);
+  const isAndroidApp = Capacitor.getPlatform() === 'android';
   const [selectedId, setSelectedId] = useState(eligibleEmployees[0]?.id || '');
   const [side, setSide] = useState<'front' | 'back'>('front');
+  const [orientation, setOrientation] = useState<IDCardOrientation>(() => {
+    if (typeof localStorage === 'undefined') return 'vertical';
+    return localStorage.getItem(ID_CARD_ORIENTATION_STORAGE_KEY) === 'horizontal' ? 'horizontal' : 'vertical';
+  });
   const [query, setQuery] = useState('');
   const [selectedBatch, setSelectedBatch] = useState<string[]>([]);
   const [photoDataUrl, setPhotoDataUrl] = useState('');
@@ -304,6 +396,125 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
       console.warn('Desain ID Card tidak dapat disimpan:', error);
     }
   }, [design]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(ID_CARD_ORIENTATION_STORAGE_KEY, orientation);
+    } catch (error) {
+      console.warn('Orientasi ID Card tidak dapat disimpan:', error);
+    }
+  }, [orientation]);
+
+  useEffect(() => {
+    if (document.getElementById('pt-id-card-orientation-v1')) return;
+    const style = document.createElement('style');
+    style.id = 'pt-id-card-orientation-v1';
+    style.textContent = `
+      .id-card-orientation-switch {
+        display:flex !important;
+        align-items:stretch !important;
+        overflow:hidden !important;
+        border:1px solid rgba(214,174,88,.38) !important;
+        border-radius:12px !important;
+        background:#172033 !important;
+        flex:0 0 auto !important;
+      }
+      .id-card-orientation-switch button {
+        min-height:42px !important;
+        padding:0 12px !important;
+        border:0 !important;
+        border-radius:0 !important;
+        background:#172033 !important;
+        color:#dce6f2 !important;
+        font-size:12px !important;
+        font-weight:750 !important;
+        white-space:nowrap !important;
+        cursor:pointer !important;
+      }
+      .id-card-orientation-switch button + button { border-left:1px solid rgba(255,255,255,.08) !important; }
+      .id-card-orientation-switch button.active {
+        background:var(--pt-accent,#d6ae58) !important;
+        color:#08121f !important;
+      }
+      .id-card-module-android {
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+        padding:6px 8px 24px !important;
+        overflow-x:hidden !important;
+      }
+      .id-card-module-android .page-heading {
+        display:flex !important;
+        align-items:flex-start !important;
+        justify-content:space-between !important;
+        gap:8px !important;
+        margin-bottom:10px !important;
+      }
+      .id-card-module-android .page-heading h1 { margin:0 !important; font-size:21px !important; line-height:1.12 !important; }
+      .id-card-module-android .page-heading p { margin:4px 0 0 !important; font-size:9px !important; line-height:1.35 !important; color:#9fb3c8 !important; }
+      .id-card-module-android .page-heading > button { flex:0 0 auto !important; min-height:36px !important; padding:0 10px !important; font-size:10px !important; }
+      .id-card-module-android .id-card-designer,
+      .id-card-module-android .id-card-pratinjau-panel,
+      .id-card-module-android .id-card-list {
+        backdrop-filter:none !important;
+        -webkit-backdrop-filter:none !important;
+        box-shadow:none !important;
+      }
+      .id-card-module-android .id-card-designer { padding:11px !important; border-radius:15px !important; margin-bottom:9px !important; }
+      .id-card-module-android .id-card-designer-head { gap:8px !important; margin-bottom:10px !important; }
+      .id-card-module-android .id-card-designer-head b { font-size:13px !important; }
+      .id-card-module-android .id-card-designer-head small { font-size:9px !important; line-height:1.35 !important; }
+      .id-card-module-android .id-card-designer-grid { grid-template-columns:1fr !important; gap:8px !important; }
+      .id-card-module-android .id-card-designer-grid > label,
+      .id-card-module-android .id-card-designer-toggles label { font-size:10px !important; }
+      .id-card-module-android .id-card-designer-grid > label input,
+      .id-card-module-android .id-card-designer-grid > label select { min-height:38px !important; font-size:11px !important; }
+      .id-card-module-android .id-card-theme-pills {
+        gap:6px !important;
+        margin-top:9px !important;
+        overflow-x:auto !important;
+        flex-wrap:nowrap !important;
+        padding-bottom:2px !important;
+        scrollbar-width:none !important;
+      }
+      .id-card-module-android .id-card-theme-pills::-webkit-scrollbar { display:none !important; }
+      .id-card-module-android .id-card-theme-pills button { flex:0 0 auto !important; padding:7px 9px !important; font-size:10px !important; }
+      .id-card-module-android .id-card-design-meta { margin-top:8px !important; padding-top:8px !important; font-size:8px !important; }
+      .id-card-module-android .id-card-toolbar {
+        display:grid !important;
+        grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+        gap:7px !important;
+        margin-bottom:9px !important;
+      }
+      .id-card-module-android .id-card-toolbar > input,
+      .id-card-module-android .id-card-toolbar > select { min-width:0 !important; min-height:38px !important; font-size:10px !important; }
+      .id-card-module-android .id-card-toolbar .side-switch,
+      .id-card-module-android .id-card-toolbar .id-card-orientation-switch { min-height:38px !important; width:100% !important; min-width:0 !important; }
+      .id-card-module-android .side-switch button,
+      .id-card-module-android .id-card-orientation-switch button { min-height:38px !important; padding:0 6px !important; font-size:9px !important; }
+      .id-card-module-android .id-card-orientation-switch { display:flex !important; }
+      .id-card-module-android .id-card-orientation-switch button { flex:1 1 50% !important; }
+      .id-card-module-android .id-card-layout { display:grid !important; grid-template-columns:1fr !important; gap:9px !important; }
+      .id-card-module-android .id-card-pratinjau-panel { min-width:0 !important; padding:8px !important; border-radius:15px !important; }
+      .id-card-module-android .id-card-pratinjau { width:100% !important; min-height:0 !important; padding:2px !important; overflow:hidden !important; display:flex !important; justify-content:center !important; }
+      .id-card-module-android .id-card-pratinjau svg { display:block !important; width:min(100%,430px) !important; height:auto !important; max-width:100% !important; }
+      .id-card-module-android .id-card-actions { display:grid !important; grid-template-columns:1fr 1fr !important; gap:6px !important; margin-top:8px !important; }
+      .id-card-module-android .id-card-actions button { min-height:38px !important; padding:0 7px !important; font-size:9px !important; }
+      .id-card-module-android .id-card-note { display:block !important; margin-top:8px !important; font-size:8px !important; line-height:1.4 !important; }
+      .id-card-module-android .id-card-list { min-width:0 !important; max-height:250px !important; overflow:auto !important; padding:9px !important; border-radius:15px !important; }
+      .id-card-module-android .id-list-head { position:sticky !important; top:0 !important; z-index:2 !important; padding-bottom:8px !important; }
+      .id-card-module-android .id-employee-row { min-width:0 !important; gap:7px !important; padding:8px 2px !important; }
+      .id-card-module-android .id-employee-row b { font-size:10px !important; }
+      .id-card-module-android .id-employee-row small { font-size:8px !important; }
+      .id-card-module-android .id-avatar { width:30px !important; height:30px !important; flex:0 0 30px !important; font-size:9px !important; }
+      @media (max-width:390px) {
+        .id-card-module-android { padding-left:6px !important; padding-right:6px !important; }
+        .id-card-module-android .page-heading > button { font-size:9px !important; padding-left:8px !important; padding-right:8px !important; }
+        .id-card-module-android .id-card-actions button { font-size:8px !important; }
+      }
+    `;
+    document.head.appendChild(style);
+  }, []);
+
 
   const filtered = useMemo(
     () => eligibleEmployees.filter(e => `${e.nama} ${e.id_karyawan || ''} ${e.jabatan || ''}`.toLowerCase().includes(query.toLowerCase())),
@@ -462,12 +673,12 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
       setActionError('Tunggu sampai QR verifikasi selesai dibuat.');
       return;
     }
-    const svg = CardArtwork({ employee, side, design, logoUrl, photoOverride: activePhotoDataUrl, verificationToken: token });
+    const svg = CardArtwork({ employee, side, design, logoUrl, photoOverride: activePhotoDataUrl, verificationToken: token, orientation });
     const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ID-CARD-${safeId(employee)}-${side}.svg`;
+    a.download = `ID-CARD-${safeId(employee)}-${orientation}-${side}.svg`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -478,12 +689,12 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
       setActionError('Tunggu sampai QR verifikasi selesai dibuat.');
       return;
     }
-    const exportSvg = CardArtwork({ employee, side, design, logoUrl, photoOverride: activePhotoDataUrl, verificationToken: token });
+    const exportSvg = CardArtwork({ employee, side, design, logoUrl, photoOverride: activePhotoDataUrl, verificationToken: token, orientation });
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = 1712;
-      canvas.height = 1080;
+      canvas.width = orientation === 'vertical' ? 1080 : 1712;
+      canvas.height = orientation === 'vertical' ? 1712 : 1080;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -492,7 +703,7 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
         const u = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = u;
-        a.download = `ID-CARD-${safeId(employee)}-${side}.png`;
+        a.download = `ID-CARD-${safeId(employee)}-${orientation}-${side}.png`;
         a.click();
         URL.revokeObjectURL(u);
       }, 'image/png');
@@ -529,15 +740,15 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
       return;
     }
 
-    win.document.write(`<!doctype html><html><head><title>ID Card ${escapeXml(design.companyName)}</title><style>@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff}.cetak-card{width:210mm;height:297mm;display:flex;align-items:center;justify-content:center;break-after:page;page-break-after:always;overflow:hidden}.cetak-card:last-child{break-after:auto;page-break-after:auto}.cetak-card img{display:block;width:85.6mm;height:54mm;object-fit:contain}</style></head><body>`);
+    win.document.write(`<!doctype html><html><head><title>ID Card ${escapeXml(design.companyName)}</title><style>@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff}.cetak-card{width:210mm;height:297mm;display:flex;align-items:center;justify-content:center;break-after:page;page-break-after:always;overflow:hidden}.cetak-card:last-child{break-after:auto;page-break-after:auto}.cetak-card img{display:block;width:${orientation === 'vertical' ? '54mm' : '85.6mm'};height:${orientation === 'vertical' ? '85.6mm' : '54mm'};object-fit:contain}</style></head><body>`);
 
     try {
       for (const item of list) {
         const itemToken = design.showQr ? await ensureVerificationToken(item.id) : '';
         const photoUrl = item.foto_url || item.foto || item.photo_url || '';
         const employeePhotoDataUrl = item.id === employee?.id && photoDataUrl ? photoDataUrl : await getPhotoDataUrl(photoUrl);
-        const frontSvg = CardArtwork({ employee: item, side: 'front', design, logoUrl, photoOverride: employeePhotoDataUrl, verificationToken: itemToken });
-        const backSvg = CardArtwork({ employee: item, side: 'back', design, logoUrl, photoOverride: employeePhotoDataUrl, verificationToken: itemToken });
+        const frontSvg = CardArtwork({ employee: item, side: 'front', design, logoUrl, photoOverride: employeePhotoDataUrl, verificationToken: itemToken, orientation });
+        const backSvg = CardArtwork({ employee: item, side: 'back', design, logoUrl, photoOverride: employeePhotoDataUrl, verificationToken: itemToken, orientation });
         const frontSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(frontSvg)}`;
         const backSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(backSvg)}`;
         win.document.write(`<div class="cetak-card"><img src="${frontSrc}" alt="ID Card Depan" /></div><div class="cetak-card"><img src="${backSrc}" alt="ID Card Belakang" /></div>`);
@@ -574,6 +785,7 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
             logoUrl,
             photoOverride: activePhotoDataUrl,
             verificationToken: token,
+            orientation,
           })
         : '',
     [
@@ -583,6 +795,7 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
       logoUrl,
       activePhotoDataUrl,
       token,
+      orientation,
     ]
   );
   const currentTheme = ID_CARD_DESIGN_THEMES[design.theme];
@@ -590,7 +803,7 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
   if (!employee) return <div className="panel"><p>{t('no_employee_for_id_card')}</p></div>;
 
   return (
-    <div className="id-card-module">
+    <div className={`id-card-module${isAndroidApp ? " id-card-module-android" : ""}`}>
       <div className="page-heading">
         <div><h1>{t('employee_id_card')}</h1><p>{t('id_card_desc')}</p></div>
         <button className="primary" onClick={cetakCurrent}>🖨️ Cetak Kartu</button>
@@ -619,14 +832,18 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
       <div className="id-card-toolbar">
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('search_employee_id')} />
         <select value={selectedId} onChange={e => setSelectedId(e.target.value)}>{filtered.map(e => <option key={e.id} value={e.id}>{e.nama} — {safeId(e)}</option>)}</select>
-        <div className="side-switch"><button className={side === 'front' ? 'active' : ''} onClick={() => setSide('front')}>{t('front')}</button><button className={side === 'back' ? 'active' : ''} onClick={() => setSide('back')}>{t('back')}</button></div>
+        <div className="id-card-orientation-switch" aria-label="Pilih orientasi ID Card">
+          <button type="button" className={orientation === 'vertical' ? 'active' : ''} onClick={() => setOrientation('vertical')}>↕️ Vertikal</button>
+          <button type="button" className={orientation === 'horizontal' ? 'active' : ''} onClick={() => setOrientation('horizontal')}>↔️ Horizontal</button>
+        </div>
+        <div className="side-switch"><button type="button" className={side === 'front' ? 'active' : ''} onClick={() => setSide('front')}>{t('front')}</button><button type="button" className={side === 'back' ? 'active' : ''} onClick={() => setSide('back')}>{t('back')}</button></div>
       </div>
 
       <div className="id-card-layout">
         <div className="id-card-pratinjau-panel panel" ref={cardRef}>
           <div className="id-card-pratinjau" dangerouslySetInnerHTML={{ __html: svg }} />
-          <div className="id-card-actions"><button className="secondary" onClick={unduhPng}>⬇️ Unduh PNG</button><button className="secondary" onClick={unduhSvg}>⬇️ Unduh SVG</button><button className="primary" onClick={unduhPdf}>⬇️ Unduh PDF — Depan + Belakang</button><button className="primary" onClick={cetakCurrent}>🖨️ Cetak — Depan + Belakang</button></div>
-          <small className="id-card-note">QR berisi token acak, bukan data pribadi. Token memvalidasi ke sistem Project by Tirta dan tetap menunjuk ke karyawan yang sama saat ID Karyawan berubah.</small>
+          <div className="id-card-actions"><button type="button" className="secondary" onClick={unduhPng}>⬇️ PNG</button><button type="button" className="secondary" onClick={unduhSvg}>⬇️ SVG</button><button type="button" className="primary" onClick={unduhPdf}>⬇️ Cetak/PDF — Depan + Belakang</button><button type="button" className="primary" onClick={cetakCurrent}>🖨️ Cetak — Depan + Belakang</button></div>
+          <small className="id-card-note">Format aktif: <b>{orientation === 'vertical' ? 'Vertikal 54 × 85,6 mm' : 'Horizontal 85,6 × 54 mm'}</b>. Cetak/PDF selalu menyiapkan sisi depan dan belakang untuk karyawan yang dipilih.</small>
         </div>
         <div className="panel id-card-list"><div className="id-list-head"><div><b>{t('select_batch_print')}</b><small>{selectedBatch.length} karyawan dipilih</small></div><button className="link-btn" onClick={() => setSelectedBatch(filtered.map(e => e.id))}>{t('select_all')}</button></div>{filtered.map(e => (
   <EmployeeBatchRow
