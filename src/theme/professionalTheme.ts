@@ -919,7 +919,7 @@ table td {
 }
 
 /* =========================================================
-   FIVE REAL COSMIC ATMOSPHERES — not just accent colors
+   SIX REAL COSMIC ATMOSPHERES — not just accent colors
    ========================================================= */
 html[data-cosmic-theme="sun"] .talenta-shell::before,
 html[data-cosmic-theme="sun"] .employee-portal-cosmic::before {
@@ -1009,6 +1009,34 @@ html[data-cosmic-theme="nebula"] .employee-portal-cosmic::after {
     radial-gradient(circle at 87% 55%, rgba(255,255,255,.32) 0 1px, transparent 1.7px);
   filter: blur(1px) !important;
   animation: pt-nebula-ambient 15s ease-in-out infinite alternate !important;
+}
+
+/* Aurora uses the exact same shell/layout as the other cosmic themes.
+   Only the atmosphere and accent palette changes; no geometry is overridden. */
+html[data-cosmic-theme="aurora"] .talenta-shell::before,
+html[data-cosmic-theme="aurora"] .employee-portal-cosmic::before {
+  background:
+    radial-gradient(ellipse at 18% 20%, rgba(124,255,178,.24), transparent 25%),
+    radial-gradient(ellipse at 82% 17%, rgba(111,211,255,.22), transparent 24%),
+    radial-gradient(ellipse at 68% 74%, rgba(167,110,255,.16), transparent 28%),
+    linear-gradient(180deg,#07131b 0%,#031018 64%,#02070b 100%) !important;
+}
+html[data-cosmic-theme="aurora"] .talenta-shell::after,
+html[data-cosmic-theme="aurora"] .employee-portal-cosmic::after {
+  background:
+    linear-gradient(132deg, transparent 22%, rgba(124,255,178,.09) 36%, transparent 50%),
+    linear-gradient(28deg, transparent 38%, rgba(111,211,255,.08) 51%, transparent 64%),
+    radial-gradient(circle at 12% 27%, rgba(255,255,255,.40) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 38% 12%, rgba(255,255,255,.34) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 76% 30%, rgba(255,255,255,.38) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 88% 74%, rgba(255,255,255,.32) 0 1px, transparent 1.7px);
+  filter: blur(.6px) !important;
+  animation: pt-aurora-ambient 16s ease-in-out infinite alternate !important;
+}
+
+@keyframes pt-aurora-ambient {
+  from { transform: translate3d(-.8%, .4%, 0) scale(1); opacity:.48; }
+  to { transform: translate3d(1.0%, -.8%, 0) scale(1.045); opacity:.88; }
 }
 
 @keyframes pt-sun-ambient { from { transform:scale(1) translate3d(-.3%,0,0); opacity:.55; } to { transform:scale(1.05) translate3d(.5%,-.8%,0); opacity:.9; } }
