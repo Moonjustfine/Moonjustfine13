@@ -1,16 +1,22 @@
 import { Capacitor } from '@capacitor/core';
 import PortalKaryawanClassic from './PortalKaryawanClassic';
 import PortalKaryawanCosmicAndroid from './PortalKaryawanCosmicAndroid';
+import PortalKaryawanCosmicIOS from './PortalKaryawanCosmicIOS';
 
-type Props = { onLogout?: () => void };
+type Props = {
+  onLogout?: () => void;
+};
 
-/**
- * The Cosmic V58 redesign is intentionally Android-only.
- * Web/PWA keeps the existing employee portal implementation.
- */
 export default function PortalKaryawan({ onLogout }: Props) {
-  const isAndroid = Capacitor.getPlatform() === 'android';
-  return isAndroid
-    ? <PortalKaryawanCosmicAndroid onLogout={onLogout} />
-    : <PortalKaryawanClassic onLogout={onLogout} />;
+  const platform = Capacitor.getPlatform();
+
+  if (platform === 'android') {
+    return <PortalKaryawanCosmicAndroid onLogout={onLogout} />;
+  }
+
+  if (platform === 'ios') {
+    return <PortalKaryawanCosmicIOS onLogout={onLogout} />;
+  }
+
+  return <PortalKaryawanClassic onLogout={onLogout} />;
 }
