@@ -3889,6 +3889,104 @@ export function initializeCosmicTheme(): void {
       html[data-cosmic-theme="sun"] .pt-cosmic-auth .pt-auth-card .unified-login-button{background:linear-gradient(135deg,#f8da8e,#d9a947)!important}
     `;
     document.head.appendChild(pageBackgroundFix);
+
+    /* ANDROID ID CARD V5 — solid HR frame, real photo, no duplicate renderer */
+    if (!document.getElementById('pt-android-id-card-final-v5')) {
+      const idCardFix = document.createElement('style');
+      idCardFix.id = 'pt-android-id-card-final-v5';
+      idCardFix.textContent = `
+        .pt-android-cosmic-active [data-pt-id-card-shell],
+        .pt-android-cosmic-active .pt-id-card-shell {
+          background:#101827 !important;
+          color:#f8fafc !important;
+          border:2px solid #d6ae58 !important;
+          border-radius:22px !important;
+          box-shadow:0 16px 40px rgba(0,0,0,.32) !important;
+          backdrop-filter:none !important;
+          -webkit-backdrop-filter:none !important;
+          opacity:1 !important;
+          overflow:hidden !important;
+        }
+        .pt-android-cosmic-active [data-pt-id-card-shell] *,
+        .pt-android-cosmic-active .pt-id-card-shell * { opacity:1 !important; }
+        .pt-android-cosmic-active [data-pt-id-card-shell] img,
+        .pt-android-cosmic-active .pt-id-card-shell img { opacity:1 !important; filter:none !important; }
+        .pt-android-cosmic-active [data-pt-id-card-shell] [class*="avatar"],
+        .pt-android-cosmic-active [data-pt-id-card-shell] [class*="photo"],
+        .pt-android-cosmic-active .pt-id-card-shell [class*="avatar"],
+        .pt-android-cosmic-active .pt-id-card-shell [class*="photo"] {
+          background-color:#172033 !important;
+          background-image:var(--pt-employee-photo,none) !important;
+          background-position:center !important;
+          background-size:cover !important;
+          background-repeat:no-repeat !important;
+          border:2px solid #d6ae58 !important;
+          overflow:hidden !important;
+        }
+        .pt-android-cosmic-active [data-pt-id-card-shell] button,
+        .pt-android-cosmic-active .pt-id-card-shell button {
+          background:#d6ae58 !important;
+          color:#0b1222 !important;
+          border-color:#f0d68c !important;
+          opacity:1 !important;
+          box-shadow:none !important;
+        }
+        .pt-android-cosmic-active [data-pt-id-card-shell] .secondary,
+        .pt-android-cosmic-active .pt-id-card-shell .secondary { background:#172033 !important; color:#f8fafc !important; border:1px solid #d6ae58 !important; }
+        @media(max-width:899px){
+          .pt-android-cosmic-active [data-pt-id-card-shell],
+          .pt-android-cosmic-active .pt-id-card-shell { width:100% !important; max-width:100% !important; min-width:0 !important; }
+        }
+      `;
+      document.head.appendChild(idCardFix);
+    }
+
+    if (!document.documentElement.dataset.ptAndroidIdCardFinalV5) {
+      document.documentElement.dataset.ptAndroidIdCardFinalV5 = 'true';
+      const normalize = (v: unknown) => String(v || '').replace(/\s+/g,' ').trim();
+      const findCards = () => {
+        const root = document.querySelector('.pt-android-cosmic-active');
+        if (!root) return;
+        const all = Array.from(root.querySelectorAll('section,article,div')).filter(el => {
+          if (!(el instanceof HTMLElement) || el.closest('svg')) return false;
+          const tx = normalize(el.textContent);
+          return /Kartu Identitas Karyawan/i.test(tx) && /Project by Tirta/i.test(tx) && tx.length < 2400;
+        });
+        if (!all.length) return;
+        all.sort((a,b)=>a.textContent.length-b.textContent.length);
+        const primary = all.find(el => /Download ID Card/i.test(normalize(el.textContent))) || all[0];
+        if (primary instanceof HTMLElement) {
+          primary.classList.add('pt-id-card-shell');
+          primary.setAttribute('data-pt-id-card-shell','true');
+        }
+        const nested = new Set();
+        all.forEach(el => { if (el !== primary && primary.contains(el)) nested.add(el); });
+        all.forEach(el => {
+          if (el===primary || nested.has(el)) return;
+          if (el instanceof HTMLElement && /Kartu Identitas Karyawan/i.test(normalize(el.textContent))) {
+            el.setAttribute('data-pt-id-card-duplicate','true');
+            el.style.setProperty('display','none','important');
+          }
+        });
+        const shell = primary instanceof HTMLElement ? primary : null;
+        if(shell){
+          const avatarCandidates = Array.from(shell.querySelectorAll('[class*="avatar"],[class*="photo"]'));
+          avatarCandidates.forEach((el)=>{
+            if(el instanceof HTMLElement && getComputedStyle(el).backgroundImage==='none' && getComputedStyle(el).backgroundColor!=='transparent'){
+              el.style.setProperty('background-image','var(--pt-employee-photo,none)','important');
+              el.style.setProperty('background-size','cover','important');
+              el.style.setProperty('background-position','center','important');
+            }
+          });
+        }
+      };
+      findCards();
+      const observer = new MutationObserver(findCards);
+      observer.observe(document.body,{childList:true,subtree:true});
+      window.setTimeout(findCards,300);
+      window.setTimeout(findCards,1200);
+      window.setTimeout(findCards,2500);
+    }
   }
   applyCosmicTheme(readPersistedCosmicTheme(), false);
 }

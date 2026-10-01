@@ -784,8 +784,7 @@ export default function IDCardModule({ employees, companyName, logoUrl }: Props)
             design,
             logoUrl,
             photoOverride: activePhotoDataUrl,
-            verificationToken: token,
-            orientation,
+            verificationToken: token, orientation,
           })
         : '',
     [
