@@ -13,3 +13,11 @@ Never put a Supabase service-role key in Vite/Netlify client variables. The brow
 The application does not expose a public endpoint for creating a Super Admin. This is intentional: an unauthenticated endpoint backed by the Supabase service-role key would allow anyone who can reach it to create a privileged account.
 
 For the first administrator, create the user in **Supabase Dashboard → Authentication → Users**, then run the one-time profile update shown in `BOOTSTRAP_FRESH_DATABASE.sql` (or update the matching `hris_users` row) to set the role to `Super Admin`. Subsequent account and role administration should be performed through authenticated HRIS flows and the database RLS policies.
+
+
+## 2026-10-01 release hardening
+
+After the existing migrations, apply `supabase/migrations/20261001070000_release_security_and_employee_lifecycle_hardening.sql`.
+This migration is idempotent and repairs employee deactivation reason storage, private employee photo access, ID-card QR verification, and ESS attendance helper references.
+
+For clean deployments, use the SQL files in `supabase/migrations/` in timestamp order after the legacy `supabase/migration/` sequence. Do not rely on an empty or hand-maintained migration file as the only source of a schema change.

@@ -20,7 +20,8 @@
     "cap:ios": "npx cap open ios",
     "audit:pwa": "node scripts/audit-pwa.mjs",
     "audit:professional": "node scripts/audit-professional-release.mjs",
-    "audit:presentation": "node scripts/audit-presentation.mjs"
+    "audit:presentation": "node scripts/audit-presentation.mjs",
+    "audit:database": "node scripts/audit-database.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

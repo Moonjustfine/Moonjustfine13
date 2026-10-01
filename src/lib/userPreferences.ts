@@ -1,14 +1,19 @@
 import { supabase } from './supabase/client';
 import type { LanguageCode } from '../locales/LanguageContext';
-import type { CosmicThemeId } from '../theme/professionalTheme';
+import type { CosmicThemeId, AdminThemeId } from '../theme/professionalTheme';
 
 const THEME_PREFIX = 'project-tirta-theme-user:';
 const LANGUAGE_PREFIX = 'project-tirta-language-user:';
 const CUSTOM_THEME_PREFIX = 'project-tirta-custom-theme-user:';
 
+const ADMIN_THEME_PREFIX = 'project-tirta-admin-theme-user:';
+
+const isAdminTheme = (value: unknown): value is AdminThemeId =>
+  value === 'professional';
+
 const isTheme = (value: unknown): value is CosmicThemeId =>
   typeof value === 'string' &&
-  ['sun', 'moon', 'galaxy', 'blackhole', 'nebula'].includes(value);
+  ['sun', 'moon', 'galaxy', 'blackhole', 'nebula', 'aurora'].includes(value);
 
 
 function safeGet(key: string): string | null {
@@ -60,6 +65,49 @@ export function loadCustomThemeCache(userId: string): unknown {
 
 export function saveCustomThemeCache(userId: string, value: unknown): void {
   try { safeSet(CUSTOM_THEME_PREFIX + userId, JSON.stringify(value)); } catch { /* cache only */ }
+}
+
+
+export async function loadAdminThemePreference(userId: string): Promise<AdminThemeId | null> {
+  const cached = safeGet(ADMIN_THEME_PREFIX + userId);
+  const fallback: AdminThemeId | null = isAdminTheme(cached) ? cached : null;
+  try {
+    const { data } = await supabase
+      .from('hris_admin_theme_preferences')
+      .select('theme')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (isAdminTheme(data?.theme)) {
+      safeSet(ADMIN_THEME_PREFIX + userId, data.theme);
+      return data.theme;
+    }
+  } catch (error) {
+    console.warn('Unable to load admin portal theme preference:', error);
+  }
+  return fallback;
+}
+
+export async function saveAdminThemePreference(userId: string, theme: AdminThemeId): Promise<void> {
+  safeSet(ADMIN_THEME_PREFIX + userId, theme);
+  try {
+    const { error } = await supabase.from('hris_admin_theme_preferences').upsert(
+      { user_id: userId, theme },
+      { onConflict: 'user_id' }
+    );
+    if (error) console.warn('Unable to save admin portal theme preference:', error);
+  } catch (error) {
+    console.warn('Unable to save admin portal theme preference:', error);
+  }
+}
+
+export async function clearAdminThemePreference(userId: string): Promise<void> {
+  try { localStorage.removeItem(ADMIN_THEME_PREFIX + userId); } catch { /* cache only */ }
+  try {
+    const { error } = await supabase.from('hris_admin_theme_preferences').delete().eq('user_id', userId);
+    if (error) console.warn('Unable to clear admin portal theme preference:', error);
+  } catch (error) {
+    console.warn('Unable to clear admin portal theme preference:', error);
+  }
 }
 
 

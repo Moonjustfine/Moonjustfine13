@@ -460,7 +460,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select public.current_hris_role() in ('Admin','Super Admin','Administrator HR','HR','HR Manager');
+  select public.current_hris_role() in ('Admin','Super Admin','Administrator HR','HR','HR Manager','HRD');
 $$;
 
 grant execute on function public.current_hris_role() to authenticated;
@@ -1342,6 +1342,7 @@ create index if not exists idx_approval_history_request on public.hris_approval_
 alter table public.karyawan add column if not exists nomor_induk text;
 alter table public.karyawan add column if not exists tanggal_keluar date;
 alter table public.karyawan add column if not exists alasan_keluar text;
+alter table public.karyawan add column if not exists alasan_keluar_kode text;
 alter table public.karyawan add column if not exists atasan_id text;
 alter table public.karyawan add column if not exists level_jabatan text;
 alter table public.karyawan add column if not exists lokasi_kerja text;

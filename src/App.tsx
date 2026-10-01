@@ -3,10 +3,10 @@ import { isSupabaseConfigured, supabase } from './lib/supabase/client';
 import { signIn } from './lib/auth';
 import { checkForAppUpdate } from './lib/app-update';
 import { useTranslation } from './locales/LanguageContext';
-import { loadUserThemePreference, getEmployeePortalTheme } from './lib/userPreferences';
+import { loadUserThemePreference, getEmployeePortalTheme, loadAdminThemePreference } from './lib/userPreferences';
 
 import moonLogo from './assets/moon-logo.svg';
-import { applyCosmicTheme, initializeCosmicTheme } from './theme/professionalTheme';
+import { applyCosmicTheme, applyAdminTheme, initializeCosmicTheme } from './theme/professionalTheme';
 import { installLoadingStyles } from './loading-real-final-v57.15';
 
 import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
@@ -280,7 +280,9 @@ export default function App() {
         if (account.view === 'employee') {
           applyCosmicTheme(await getEmployeePortalTheme(), false);
         } else if (account.view === 'admin') {
-          applyCosmicTheme(await loadUserThemePreference(data.session.user.id), false);
+          const adminTheme = await loadAdminThemePreference(data.session.user.id);
+          if (adminTheme) applyAdminTheme(adminTheme, false);
+          else applyCosmicTheme(await loadUserThemePreference(data.session.user.id), false);
         }
       }
 
@@ -344,7 +346,9 @@ export default function App() {
               if (account.view === 'employee') {
                 applyCosmicTheme(await getEmployeePortalTheme(), false);
               } else if (account.view === 'admin') {
-                applyCosmicTheme(await loadUserThemePreference(session.user.id), false);
+                const adminTheme = await loadAdminThemePreference(session.user.id);
+                if (adminTheme) applyAdminTheme(adminTheme, false);
+                else applyCosmicTheme(await loadUserThemePreference(session.user.id), false);
               }
             }
 
@@ -415,7 +419,9 @@ export default function App() {
       if (account.view === 'employee') {
         applyCosmicTheme(await getEmployeePortalTheme(), false);
       } else if (account.view === 'admin') {
-        applyCosmicTheme(await loadUserThemePreference(data.user.id), false);
+        const adminTheme = await loadAdminThemePreference(data.user.id);
+        if (adminTheme) applyAdminTheme(adminTheme, false);
+        else applyCosmicTheme(await loadUserThemePreference(data.user.id), false);
       }
     }
 

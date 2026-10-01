@@ -6,16 +6,17 @@ import galaxyArt from '../../../assets/cosmic/cosmic-galaxy.webp';
 import blackholeArt from '../../../assets/cosmic/cosmic-blackhole.webp';
 import nebulaArt from '../../../assets/cosmic/cosmic-nebula.webp';
 
-type CosmicTheme = 'sun'|'moon'|'galaxy'|'blackhole'|'nebula';
+type CosmicTheme = 'sun'|'moon'|'galaxy'|'blackhole'|'nebula'|'aurora';
 
-const ART: Record<CosmicTheme,string> = {
+const ART: Partial<Record<CosmicTheme,string>> = {
   sun:sunArt, moon:moonArt, galaxy:galaxyArt,
   blackhole:blackholeArt, nebula:nebulaArt
 };
+const isArtTheme=(theme:CosmicTheme):theme is Exclude<CosmicTheme,'aurora'>=>Boolean(ART[theme]);
 
 function readTheme(): CosmicTheme {
   const v = document.documentElement.dataset.cosmicTheme;
-  return v && v in ART ? v as CosmicTheme : 'sun';
+  return v && (v in ART || v === 'aurora') ? v as CosmicTheme : 'sun';
 }
 
 export default function AndroidCosmicBackground() {
@@ -82,6 +83,8 @@ export default function AndroidCosmicBackground() {
       ? 'conic-gradient(from 20deg at 50% 50%,transparent 0 35deg,rgba(130,100,255,.20) 55deg,transparent 80deg 170deg,rgba(50,210,255,.18) 205deg,transparent 235deg)'
       : theme==='nebula'
       ? 'conic-gradient(from 35deg at 50% 50%,rgba(255,90,210,.14),transparent 35%,rgba(80,140,255,.16),transparent 70%)'
+      : theme==='aurora'
+      ? 'conic-gradient(from 120deg at 50% 50%,rgba(124,255,178,.16),transparent 28%,rgba(111,211,255,.16) 48%,transparent 70%,rgba(167,110,255,.12))'
       : 'radial-gradient(circle at 50% 45%,rgba(80,190,255,.10),transparent 42%)';
 
   if (typeof document === 'undefined') return null;
@@ -90,7 +93,7 @@ export default function AndroidCosmicBackground() {
     <div style={root} aria-hidden="true">
       <div ref={art} style={{
         position:'absolute',inset:'-7%',
-        backgroundImage:`url("${ART[theme]}")`,
+        backgroundImage:isArtTheme(theme) ? `url("${ART[theme]}")` : 'linear-gradient(125deg,rgba(124,255,178,.14),transparent 36%,rgba(111,211,255,.16) 58%,transparent 78%), radial-gradient(circle at 72% 20%,rgba(167,110,255,.12),transparent 26%)',
         backgroundRepeat:'no-repeat',
         backgroundPosition:'center',
         backgroundSize:'cover',

@@ -19,14 +19,15 @@ import EnterpriseRoadmapV26V35 from '../enterprise/EnterpriseRoadmapV26V35';
 import ProfessionalSuite from '../enterprise/ProfessionalSuite';
 import moonLogo from '../../../assets/moon-logo.png';
 import IDCardModule from '../employee/IDCardModule';
+import AICenter from './AICenter';
 
 import { useTranslation } from '../../../locales/LanguageContext';
 import { appAlert, appConfirm, appPrompt } from '../../../lib/app-dialog';
 import AdminAnnouncementManager from '../../../features/announcements/AdminAnnouncementManager';
 import type { Announcement } from '../../../features/announcements/types';
 import AttendanceUnified from './AttendanceUnified';
-import { applyCosmicTheme, getCosmicTheme, COSMIC_THEMES, type CosmicThemeId } from '../../../theme/professionalTheme';
-import { loadUserThemePreference, saveUserThemePreference, setEmployeePortalTheme, saveCustomThemeCache } from '../../../lib/userPreferences';
+import { applyCosmicTheme, applyAdminTheme, getCosmicTheme, getAdminTheme, COSMIC_THEMES, ADMIN_THEMES, type CosmicThemeId, type AdminThemeId } from '../../../theme/professionalTheme';
+import { loadUserThemePreference, saveUserThemePreference, setEmployeePortalTheme, saveCustomThemeCache, loadAdminThemePreference, saveAdminThemePreference, clearAdminThemePreference } from '../../../lib/userPreferences';
 
 type Karyawan = {
   id: string;
@@ -86,7 +87,7 @@ interface Absensi {
 }
 
 type MenuKey =
-  | 'overview' | 'employees' | 'employee-new' | 'employee-inactive' | 'employee-360' | 'employee-add' | 'id-card' | 'organization' | 'hr-operations'
+  | 'overview' | 'ai-center' | 'employees' | 'employee-new' | 'employee-inactive' | 'employee-360' | 'employee-add' | 'id-card' | 'organization' | 'hr-operations'
   | 'attendance' | 'attendance-today' | 'late' | 'leave' | 'overtime' | 'selfie' | 'gps'
   | 'schedule' | 'shift' | 'holiday' | 'leave-request' | 'leave-balance' | 'approvals'
   | 'payroll' | 'production-hr' | 'payroll-engine' | 'payroll-production-v22' | 'payroll-components' | 'payroll-overtime' | 'payslip'
@@ -107,7 +108,7 @@ const rolePermissions: Record<string, string[]> = {
 };
 
 const menuGroup = (key: MenuKey) => 
-  ['professional-suite'].includes(key) ? 'system' : 
+  ['ai-center', 'professional-suite'].includes(key) ? 'system' : 
   ['employees', 'employee-new', 'employee-inactive', 'id-card', 'employee-360', 'employee-add', 'organization'].includes(key) ? 'people' :
   ['attendance', 'attendance-today', 'late', 'leave', 'overtime', 'selfie'].includes(key) ? 'attendance' : 
   ['schedule', 'shift', 'holiday'].includes(key) ? 'schedule' : 
@@ -125,6 +126,7 @@ const menuGroup = (key: MenuKey) =>
   (key === 'enterprise-v26' || key === 'payroll-indonesia-v23' || key === 'security-v21') ? 'system' : 'overview';
 
 const requiredPermission = (key: MenuKey) => {
+  if (key === 'ai-center') return 'ai_hr_center';
   if (key === 'professional-suite') return 'system.health';
   if (key === 'hr-operations') return 'people.read';
   if (key === 'production-hr' || key === 'payroll-engine' || key === 'payroll-production-v22') return 'payroll.read';
@@ -168,6 +170,7 @@ const menuPermissionForRole = (key: MenuKey, role: string, dbPerms: string[] = [
 
 function Icon({ name }: { name: string }) {
   const paths: Record<string, string> = {
+    ai: 'M12 3a9 9 0 1 0 9 9M12 3v5m0 0a4 4 0 1 0 4 4m-4-4H8m8 9-4 4-4-4',
     chevronDown: 'M6 9l6 6 6-6', chevronRight: 'M9 6l6 6-6 6', logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9', menu: 'M4 6h16M4 12h16M4 18h16', refresh: 'M20 11a8 8 0 1 0 1 4m-1-4v-5m0 5h-5', search: 'M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16m10 2-4.3-4.3', home: 'M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8m6-3a4 4 0 0 1 4 4m-1-8a3 3 0 0 1 0 6', plus: 'M12 5v14M5 12h14', org: 'M4 4h16v16H4zM8 8h3v3H8zm5 0h3v3h-3zM8 13h3v3H8zm5 0h3v3h-3z', clock: 'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0', check: 'm5 12 4 4L19 6', alert: 'M12 9v4m0 4h.01M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0', leave: 'M7 3h10v18H7zM10 12h7m0 0-3-3m3 3-3 3', arrow: 'M5 12h14m-6-6 6 6-6 6', camera: 'M4 7h3l2-2h6l2 2h3v12H4zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8', calendar: 'M4 5h16v16H4zM8 3v4m8-4v4M4 10h16', shift: 'M6 4h12v16H6zM9 8h6M9 12h6M9 16h4', holiday: 'M12 2l2.6 6.3 6.8.5-5.2 4.4 1.6 6.6-5.8-3.5-5.8 3.5 1.6-6.6-5.2-4.4 6.8-.5z', request: 'M6 3h12v18H6zM9 8h6M9 12h6M9 16h4', balance: 'M5 4h14v16H5zM9 8h6M9 12h3', payroll: 'M5 4h14v16H5zM8 8h8M8 12h8M8 16h5', components: 'M5 5h14M5 12h14M5 19h14', kpi: 'M5 20V10m7 10V4m7 16v-7', recruitment: 'M4 6h16v12H4zM8 10h8M8 14h5', report: 'M5 4h14v16H5zM8 9h8M8 13h8M8 17h5', settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8m0-6v3m0 14v3m10-10h-3M5 12H2m17.1-7.1-2.1 2.1M7 17l-2.1 2.1m12.2 0L15 17M7 7 4.9 4.9', bell: 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 13h6', health: 'M20 12h-4l-2 7-4-14-2 7H4', card: 'M5 4h14v16H5zM8 8h8M8 12h5M8 16h8', dashboard: 'M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z'
   };
   const d = paths[name] || paths.home; 
@@ -749,6 +752,7 @@ export default function DashboardAdmin() {
       title: t('main'),
       items: [
         ['overview', t('home'), 'home'] as [MenuKey, string, string],
+        ['ai-center', t('ai_hr_center'), 'ai'] as [MenuKey, string, string],
         ['professional-suite', t('professional_operations'), 'kpi'] as [MenuKey, string, string],
         ['attendance', t('attendance'), 'clock'] as [MenuKey, string, string],
         ['reports', t('reports'), 'report'] as [MenuKey, string, string],
@@ -922,7 +926,7 @@ export default function DashboardAdmin() {
     const uid = userData.user?.id;
     if (!uid) { setError("Sesi login tidak ditemukan."); return; }
     if (!file.type.startsWith("image/")) { setError("File harus berupa gambar."); return; }
-    if (file.size > 5 * 1024 * 1024) { setError("Ukuran foto maksimal 5 MB."); return; }
+    if (file.size > 2 * 1024 * 1024) { setError("Ukuran foto maksimal 2 MB."); return; }
     const path = `${uid}/avatar.jpg`;
     const { error: uploadError } = await supabase.storage.from("profile-photos").upload(path, file, { upsert: true, contentType: file.type });
     if (uploadError) { setError("Gagal mengunggah foto: " + uploadError.message); return; }
@@ -1417,6 +1421,7 @@ return (
               </div>}
 
     <section className="page admin-page-frame">{loading&&<div className="loading">Memuat data…</div>}{error&&<div className="alert">{error}</div>}
+    {menu==='ai-center'&&<AICenter dbPerms={dbPerms} userRole={userRole}/>}
     {menu==='overview'&&<Overview employees={employees} attendance={attendance} payroll={payroll} onNavigate={navigate} profileName={profileName}/>}
     {menu==='professional-suite'&&<ProfessionalSuite employees={employees} attendance={attendance} onNavigate={navigate}/>}
     {menu==='id-card'&&<IDCardModule employees={employees} companyName="Project by Tirta" logoUrl={moonLogo}/> }
@@ -1786,21 +1791,21 @@ function NewEmployees({data,onRefresh}:{data:Karyawan[];onRefresh:()=>void}) {
 
   useEffect(()=>{
     let active=true;
-    const load=()=>{
+    const load=async()=>{
       setPhotoUrl('');
       const path=selected?.foto_url;
       if(!path) return;
 
-      const { data } = supabase.storage
+      const { data, error } = await supabase.storage
         .from('profile-photos')
-        .getPublicUrl(path);
+        .createSignedUrl(path, 900);
 
-      if(active && data?.publicUrl) {
-        setPhotoUrl(data.publicUrl);
+      if(active && !error && data?.signedUrl) {
+        setPhotoUrl(`${data.signedUrl}&v=${Date.now()}`);
       }
     };
 
-    load();
+    void load();
     return()=>{active=false};
   },[selected?.id,selected?.foto_url]);
 
@@ -1889,6 +1894,7 @@ function DeactivateEmployeeModal({employee,onClose,onConfirm}:{employee:Karyawan
     e.preventDefault();
     if(!reasonCode){await appAlert(t('deactivation_reason_required'));return;}
     if(!effectiveDate){await appAlert(t('deactivation_date_required'));return;}
+    if(effectiveDate > isoToday()){await appAlert(t('deactivation_date_future'));return;}
     setSaving(true);
     try {
       await onConfirm({reasonCode,effectiveDate,note});
@@ -2190,6 +2196,10 @@ function EmployeeEditor({
       }
       if (!f.tanggal_keluar) {
         await appAlert(t('deactivation_date_required'));
+        return;
+      }
+      if (f.tanggal_keluar > isoToday()) {
+        await appAlert(t('deactivation_date_future'));
         return;
       }
     }
@@ -2744,7 +2754,7 @@ function Reports({employees,attendance,onExport}:{employees:Karyawan[];attendanc
 function ReportCard({name,count,onClick}:{name:string;count:number;onClick:()=>void}){const {t}=useTranslation();return <div className="report-card"><span>{t('reports')||'LAPORAN'}</span><h3>{name}</h3><b>{count}</b><p>{t('data_available')||'data tersedia'}</p><button className="primary" onClick={onClick}>{t('export_csv')||'Export CSV'}</button></div>}
 function ThemeControl({ userRole }: { userRole: string }) {
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState<CosmicThemeId>(() => getCosmicTheme());
+  const [theme, setTheme] = useState<CosmicThemeId | AdminThemeId>(() => getAdminTheme() ?? getCosmicTheme());
 
   useEffect(() => {
     let active = true;
@@ -2752,28 +2762,38 @@ function ThemeControl({ userRole }: { userRole: string }) {
       const { data: session } = await supabase.auth.getSession();
       const userId = session.session?.user?.id;
       if (!userId) return;
-      const next = await loadUserThemePreference(userId);
+      const adminTheme = await loadAdminThemePreference(userId);
       if (!active) return;
-      setTheme(next);
-      applyCosmicTheme(next, false);
+      if (adminTheme) {
+        setTheme(adminTheme);
+        applyAdminTheme(adminTheme, false);
+        return;
+      }
+      const cosmicTheme = await loadUserThemePreference(userId);
+      if (!active) return;
+      setTheme(cosmicTheme);
+      applyCosmicTheme(cosmicTheme, false);
     };
     void load();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, []);
 
-  const chooseTheme = async (next: CosmicThemeId) => {
+  const chooseTheme = async (next: CosmicThemeId | AdminThemeId) => {
     setTheme(next);
-    applyCosmicTheme(next, true);
-
     const { data: session } = await supabase.auth.getSession();
     const userId = session.session?.user?.id;
-    if (userId) {
-      await saveUserThemePreference(userId, next);
-      if (userRole.trim().toLowerCase() === 'super admin') {
-        await setEmployeePortalTheme(next);
+    if (next in COSMIC_THEMES) {
+      const cosmic = next as CosmicThemeId;
+      applyCosmicTheme(cosmic, true);
+      if (userId) {
+        await clearAdminThemePreference(userId);
+        await saveUserThemePreference(userId, cosmic);
+        if (userRole.trim().toLowerCase() === 'super admin') await setEmployeePortalTheme(cosmic);
       }
+    } else {
+      const adminTheme = next as AdminThemeId;
+      applyAdminTheme(adminTheme, true);
+      if (userId) await saveAdminThemePreference(userId, adminTheme);
     }
     setOpen(false);
   };
@@ -2783,10 +2803,18 @@ function ThemeControl({ userRole }: { userRole: string }) {
       <button type="button" className="icon-btn theme-control-button" aria-label="Pilih tema" aria-expanded={open} title="Tema" onClick={() => setOpen(value => !value)}>◫</button>
       {open && (
         <div className="theme-control-menu" role="menu" aria-label="Pilih tema">
-          {(['sun','moon','galaxy','blackhole','nebula'] as CosmicThemeId[]).map(id => (
+          {(Object.keys(COSMIC_THEMES) as CosmicThemeId[]).map(id => (
             <button key={id} type="button" className={`theme-control-option ${theme === id ? 'active' : ''}`} role="menuitemradio" aria-checked={theme === id} onClick={() => void chooseTheme(id)}>
               <span className={`theme-control-dot cosmic-theme-${id}`} aria-hidden="true" />
               <span>{COSMIC_THEMES[id].name}</span>
+              {theme === id && <b>✓</b>}
+            </button>
+          ))}
+          <div className="theme-control-section" role="presentation">Tema HR/Admin</div>
+          {(Object.keys(ADMIN_THEMES) as AdminThemeId[]).map(id => (
+            <button key={id} type="button" className={`theme-control-option ${theme === id ? 'active' : ''}`} role="menuitemradio" aria-checked={theme === id} onClick={() => void chooseTheme(id)}>
+              <span className={`theme-control-dot admin-theme-${id}`} aria-hidden="true" />
+              <span>{ADMIN_THEMES[id].name}</span>
               {theme === id && <b>✓</b>}
             </button>
           ))}
@@ -2840,6 +2868,7 @@ function Settings({
     sidebarMuted:string;
     sidebarActive:string;
     sidebarActiveText:string;
+    adminOnly?:boolean;
   };
 
   const DEFAULT_THEME: ThemeDefinition = {
@@ -2859,7 +2888,9 @@ function Settings({
     {id:'moon',name:'Bulan',description:'Moonlight silver, midnight blue, dan calm glow.',primary:'#071222',accent:'#e4d1a0',background:'#071222',surface:'#101d31',text:'#f8fafc',border:'#e4d1a0',sidebar:'#040b17',sidebarText:'#ffffff',sidebarMuted:'#aab8cc',sidebarActive:'#e4d1a0',sidebarActiveText:'#07111f'},
     {id:'galaxy',name:'Galaksi',description:'Deep violet, nebula haze, dan electric blue.',primary:'#0d0820',accent:'#d7adff',background:'#0d0820',surface:'#17102e',text:'#f8fafc',border:'#d7adff',sidebar:'#070314',sidebarText:'#ffffff',sidebarMuted:'#c8bae0',sidebarActive:'#d7adff',sidebarActiveText:'#160b27'},
     {id:'blackhole',name:'Blackhole',description:'Singularity black, cyan ring, dan gravitational glow.',primary:'#06070a',accent:'#e8c36f',background:'#06070a',surface:'#10151b',text:'#f8fafc',border:'#e8c36f',sidebar:'#020305',sidebarText:'#ffffff',sidebarMuted:'#a8b6c0',sidebarActive:'#e8c36f',sidebarActiveText:'#07111f'},
-    {id:'nebula',name:'Nebula',description:'Cosmic pink, blue haze, dan deep-space ambience.',primary:'#100614',accent:'#ffbfe8',background:'#100614',surface:'#1b0d22',text:'#f8fafc',border:'#ffbfe8',sidebar:'#07030c',sidebarText:'#ffffff',sidebarMuted:'#cbb7ca',sidebarActive:'#ffbfe8',sidebarActiveText:'#1a0d16'}
+    {id:'nebula',name:'Nebula',description:'Cosmic pink, blue haze, dan deep-space ambience.',primary:'#100614',accent:'#ffbfe8',background:'#100614',surface:'#1b0d22',text:'#f8fafc',border:'#ffbfe8',sidebar:'#07030c',sidebarText:'#ffffff',sidebarMuted:'#cbb7ca',sidebarActive:'#ffbfe8',sidebarActiveText:'#1a0d16'},
+    {id:'aurora',name:'Aurora Glass',description:'Glassmorphism modern untuk workspace HR dengan nuansa aurora.',primary:'#07131B',accent:'#7CFFB2',background:'#07131B',surface:'#0d202a',text:'#effffc',border:'#7CFFB2',sidebar:'#061019',sidebarText:'#f3fffb',sidebarMuted:'#9fc1bb',sidebarActive:'#7CFFB2',sidebarActiveText:'#052012'},
+    {id:'professional',name:'Professional HRIS',description:'Tema HRIS umum yang bersih, netral, formal, dan mudah dibaca.',primary:'#17345f',accent:'#2563EB',background:'#F4F7FB',surface:'#FFFFFF',text:'#1F2937',border:'#D9E2EC',sidebar:'#17345f',sidebarText:'#FFFFFF',sidebarMuted:'#CBD7E8',sidebarActive:'#2563EB',sidebarActiveText:'#FFFFFF',adminOnly:true}
   ];
 
   const isHexColor=(value:string)=>/^#[0-9a-f]{6}$/i.test(value);
@@ -2920,20 +2951,50 @@ function Settings({
 
   useEffect(() => {
     const handleTheme = (event: Event) => {
-      const id = (event as CustomEvent<CosmicThemeId>).detail;
-      if (id && id in COSMIC_THEMES) setActiveThemeId(id);
+      const id = (event as CustomEvent<CosmicThemeId | AdminThemeId>).detail;
+      if (id && (id in COSMIC_THEMES || id in ADMIN_THEMES)) setActiveThemeId(id);
+    };
+    const handleAdminTheme = (event: Event) => {
+      const id = (event as CustomEvent<AdminThemeId>).detail;
+      if (id && id in ADMIN_THEMES) setActiveThemeId(id);
     };
     window.addEventListener('project-tirta-theme-change', handleTheme);
-    setActiveThemeId(getCosmicTheme());
-    return () => window.removeEventListener('project-tirta-theme-change', handleTheme);
+    window.addEventListener('project-tirta-admin-theme-change', handleAdminTheme);
+    setActiveThemeId(getAdminTheme() ?? getCosmicTheme());
+    return () => {
+      window.removeEventListener('project-tirta-theme-change', handleTheme);
+      window.removeEventListener('project-tirta-admin-theme-change', handleAdminTheme);
+    };
   }, []);
 
   const applyTheme=async(input:Partial<ThemeDefinition>,persist=true)=>{
     const theme=normalizeTheme(input);
     const root=document.documentElement;
+    if (theme.id in ADMIN_THEMES) {
+      const adminTheme = theme.id as AdminThemeId;
+      applyAdminTheme(adminTheme, true);
+      setActiveThemeId(adminTheme);
+      setCustomTheme({
+        primary:theme.primary, accent:theme.accent, background:theme.background, surface:theme.surface,
+        text:theme.text, border:theme.border, sidebar:theme.sidebar, sidebarText:theme.sidebarText,
+        sidebarMuted:theme.sidebarMuted, sidebarActive:theme.sidebarActive, sidebarActiveText:theme.sidebarActiveText
+      });
+      if (persist) {
+        const { data: session } = await supabase.auth.getSession();
+        const userId = session.session?.user?.id;
+        if (userId) await saveAdminThemePreference(userId, adminTheme);
+        setMsg(`Tema "${theme.name}" berhasil diterapkan khusus untuk area HR/admin.`);
+      }
+      return;
+    }
     if (theme.id in COSMIC_THEMES) {
       applyCosmicTheme(theme.id as CosmicThemeId, true);
       setActiveThemeId(theme.id);
+    } else {
+      // Custom themes are independent from the admin-only presets.
+      const adminStyle = document.getElementById('project-by-tirta-admin-theme-overrides');
+      adminStyle?.remove();
+      delete document.documentElement.dataset.adminTheme;
     }
     const pageText = getReadableText(theme.background, '#172033');
     const vars:Record<string,string>={
@@ -3001,10 +3062,14 @@ function Settings({
       const { data: session } = await supabase.auth.getSession();
       const userId = session.session?.user?.id;
       if (userId) {
-        if (theme.id in COSMIC_THEMES) {
+        if (theme.id in ADMIN_THEMES) {
+          await saveAdminThemePreference(userId, theme.id as AdminThemeId);
+        } else if (theme.id in COSMIC_THEMES) {
+          await clearAdminThemePreference(userId);
           await saveUserThemePreference(userId, theme.id as CosmicThemeId);
           if (canManageThemes) await setEmployeePortalTheme(theme.id as CosmicThemeId);
         } else {
+          await clearAdminThemePreference(userId);
           saveCustomThemeCache(userId, theme);
         }
       }
@@ -3025,9 +3090,15 @@ function Settings({
       const { data: session } = await supabase.auth.getSession();
       const userId = session.session?.user?.id;
       if (!userId) return;
-      const cosmic = await loadUserThemePreference(userId);
-      applyCosmicTheme(cosmic, true);
-      setActiveThemeId(cosmic);
+      const adminTheme = await loadAdminThemePreference(userId);
+      if (adminTheme) {
+        applyAdminTheme(adminTheme, false);
+        setActiveThemeId(adminTheme);
+      } else {
+        const cosmic = await loadUserThemePreference(userId);
+        applyCosmicTheme(cosmic, true);
+        setActiveThemeId(cosmic);
+      }
     };
     void loadTheme();
   },[canManageThemes]);
@@ -3161,7 +3232,7 @@ function Settings({
                   <div
                     className="theme-preview-sidebar"
                     style={{
-                      background:'#070f20'
+                      background:theme.sidebar
                     }}
                   >
                     <span></span>
@@ -3175,26 +3246,26 @@ function Settings({
                     <div
                       className="theme-preview-top"
                       style={{
-                        borderColor:'#d6ae58'
+                        borderColor:theme.border
                       }}
                     ></div>
 
                     <div className="theme-preview-cards">
                       <i
                         style={{
-                          background:'#d6ae58'
+                          background:theme.accent
                         }}
                       ></i>
 
                       <i
                         style={{
-                          background:'#070f20'
+                          background:theme.sidebar
                         }}
                       ></i>
 
                       <i
                         style={{
-                          background:'#d6ae58'
+                          background:theme.accent
                         }}
                       ></i>
                     </div>
@@ -3202,7 +3273,7 @@ function Settings({
                     <div
                       className="theme-preview-line"
                       style={{
-                        background:'#d6ae58'
+                        background:theme.accent
                       }}
                     ></div>
 
@@ -3218,6 +3289,9 @@ function Settings({
                     <small>
                       {theme.description}
                     </small>
+                    {theme.adminOnly && (
+                      <span className="theme-scope-badge">Khusus HR/Admin · tidak memengaruhi karyawan</span>
+                    )}
                   </div>
 
                   {activeThemeId===theme.id && (
@@ -3227,7 +3301,7 @@ function Settings({
                   <span
                     className="theme-color-dot"
                     style={{
-                      background:'#d6ae58'
+                      background:theme.accent
                     }}
                   ></span>
                 </div>

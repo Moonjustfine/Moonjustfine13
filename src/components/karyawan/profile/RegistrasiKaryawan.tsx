@@ -59,7 +59,7 @@ export default function RegistrasiKaryawan({ onBack }: RegistrasiKaryawanProps) 
 
     const file = e.target.files[0];
 
-    if (!file.type.startsWith('image/')) {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       setError('file_photo_error');
       return;
     }
@@ -202,14 +202,30 @@ export default function RegistrasiKaryawan({ onBack }: RegistrasiKaryawanProps) 
       // Ini penting karena signUp() dapat berhasil tanpa session
       // ketika email confirmation aktif.
       if (photoFile) {
-        const fileExt =
-          photoFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const fileExt = photoFile.type === 'image/png'
+          ? 'png'
+          : photoFile.type === 'image/webp'
+            ? 'webp'
+            : 'jpg';
+
+        const makeUuidFallback = () => {
+          const bytes = new Uint8Array(16);
+          if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+            crypto.getRandomValues(bytes);
+          } else {
+            for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+          }
+          bytes[6] = (bytes[6] & 0x0f) | 0x40;
+          bytes[8] = (bytes[8] & 0x3f) | 0x80;
+          const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+          return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+        };
 
         const safeUuid =
           typeof crypto !== 'undefined' &&
           typeof crypto.randomUUID === 'function'
             ? crypto.randomUUID()
-            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            : makeUuidFallback();
 
         const photoPath = `registration/${safeUuid}.${fileExt}`;
 

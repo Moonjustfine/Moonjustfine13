@@ -6,7 +6,8 @@ const dashboardFile = fs.readFileSync('src/components/admin/dashboard/DashboardA
 const errors = [];
 
 if (!/COSMIC_THEMES/.test(themeFile)) errors.push('Cosmic theme registry missing.');
-for (const id of ['sun','moon','galaxy','blackhole','nebula']) {
+if (!/ADMIN_THEMES/.test(themeFile)) errors.push('Admin-only theme registry missing.');
+for (const id of ['sun','moon','galaxy','blackhole','nebula','aurora']) {
   if (!new RegExp(`"${id}"\\s*:`).test(themeFile)) errors.push(`Cosmic theme missing: ${id}`);
 }
 if (!/id:'custom'/.test(fs.readFileSync('src/components/admin/dashboard/DashboardAdmin.tsx','utf8'))) errors.push('Custom theme flow missing.');
@@ -15,6 +16,13 @@ if (!/prefers-reduced-motion/.test(themeFile)) errors.push('Reduced-motion suppo
 if (!/@keyframes pt-(sun-breathe|moon-drift|galaxy-rotate|blackhole-orbit|nebula-flow)/.test(themeFile)) errors.push('Animated cosmic theme keyframes missing.');
 if (!/applyCosmicTheme\(/.test(dashboardFile)) errors.push('Theme switcher action missing.');
 if (!/COSMIC_THEMES\[id\]\.name/.test(dashboardFile)) errors.push('Theme switcher labels missing.');
+for (const id of ['professional']) {
+  if (!new RegExp(`key:\s*'${id}'`).test(dashboardFile) && !new RegExp(`\{id:'${id}'`).test(dashboardFile)) errors.push(`Admin theme missing from dashboard: ${id}`);
+}
+if (!/loadAdminThemePreference/.test(dashboardFile) || !/saveAdminThemePreference/.test(dashboardFile)) errors.push('Admin theme persistence flow missing.');
+if (!/setEmployeePortalTheme\(cosmic/.test(dashboardFile)) errors.push('Employee portal theme isolation check missing.');
+if (/id:'aurora'[^\n]*adminOnly:true/.test(dashboardFile)) errors.push('Aurora must remain a global theme, not admin-only.');
+if (!/professional:/.test(themeFile) || !/value === 'professional'/.test(themeFile)) errors.push('Professional HRIS admin-only registry missing or broadened.');
 
 const cssFiles = [];
 function walk(dir) {
@@ -32,4 +40,4 @@ if (errors.length) {
   errors.forEach(e => console.error(`- ${e}`));
   process.exit(1);
 }
-console.log('Theme audit passed: 5 animated cosmic themes + custom theme + persistence + reduced-motion + CSS-free source tree.');
+console.log('Theme audit passed: 6 animated cosmic themes + 1 admin-only theme + custom theme + persistence + reduced-motion + CSS-free source tree.');

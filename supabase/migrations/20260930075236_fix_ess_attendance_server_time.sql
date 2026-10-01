@@ -20,7 +20,7 @@ declare
 begin
   if (select auth.uid()) is null
      or p_id_karyawan is null
-     or p_id_karyawan <> (select private.hris_ess_employee_id()) then
+     or p_id_karyawan <> (select public.hris_ess_employee_id()) then
     raise exception 'Akses absensi ditolak' using errcode='42501';
   end if;
 
@@ -87,7 +87,7 @@ declare
 begin
   if (select auth.uid()) is null
      or p_id_karyawan is null
-     or p_id_karyawan <> (select private.hris_ess_employee_id()) then
+     or p_id_karyawan <> (select public.hris_ess_employee_id()) then
     raise exception 'Akses absensi ditolak' using errcode='42501';
   end if;
 

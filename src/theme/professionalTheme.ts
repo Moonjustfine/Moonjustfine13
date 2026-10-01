@@ -50,6 +50,9 @@ html[data-cosmic-theme="moon"] { --pt-bg-base:#071222; --pt-bg-deep:#020712; --p
 html[data-cosmic-theme="galaxy"] { --pt-bg-base:#0d0820; --pt-bg-deep:#03020a; --pt-accent:#d7adff; --pt-accent-2:#7aa9ff; }
 html[data-cosmic-theme="blackhole"] { --pt-bg-base:#06070a; --pt-bg-deep:#010204; --pt-accent:#e8c36f; --pt-accent-2:#63d7ff; }
 html[data-cosmic-theme="nebula"] { --pt-bg-base:#100614; --pt-bg-deep:#03040b; --pt-accent:#ffbfe8; --pt-accent-2:#71d5ff; }
+html[data-cosmic-theme="aurora"] { --pt-bg-base:#07131B; --pt-bg-deep:#02070B; --pt-accent:#7CFFB2; --pt-accent-2:#6FD3FF; }
+html[data-cosmic-theme="aurora"] body::before { background: radial-gradient(circle at 16% 18%, rgba(124,255,178,.20), transparent 25%), radial-gradient(circle at 84% 16%, rgba(111,211,255,.20), transparent 24%), radial-gradient(circle at 68% 80%, rgba(167,110,255,.16), transparent 28%), linear-gradient(160deg, rgba(5,18,25,.10), rgba(2,7,11,.35)); animation: pt-aurora-wave 15s ease-in-out infinite alternate; }
+@keyframes pt-aurora-wave { 0% { transform: translate3d(-1.5%, .5%, 0) scale(1.02); filter: hue-rotate(0deg) saturate(1.02); } 50% { transform: translate3d(1%, -1%, 0) scale(1.07); filter: hue-rotate(8deg) saturate(1.15); } 100% { transform: translate3d(2%, .5%, 0) scale(1.04); filter: hue-rotate(-8deg) saturate(1.08); } }
 html[data-cosmic-theme="sun"] body::before { background: radial-gradient(circle at 77% 16%, rgba(255,247,194,.44) 0 2.6%, rgba(255,180,65,.30) 4%, rgba(255,132,52,.14) 8%, transparent 18%), radial-gradient(ellipse at 74% 18%, rgba(255,196,92,.16), transparent 24%), radial-gradient(ellipse at 22% 68%, rgba(255,127,59,.11), transparent 22%); animation: pt-sun-breathe 8s ease-in-out infinite alternate; }
 html[data-cosmic-theme="moon"] body::before { background: radial-gradient(circle at 76% 14%, rgba(235,242,255,.28) 0 4.4%, rgba(149,187,255,.14) 9%, transparent 21%), radial-gradient(circle at 76% 14%, rgba(115,183,255,.12) 0 15%, transparent 27%), radial-gradient(circle at 14% 74%, rgba(63,133,255,.14), transparent 26%), radial-gradient(circle at 85% 78%, rgba(127,96,255,.10), transparent 25%); animation: pt-moon-drift 19s ease-in-out infinite alternate; }
 html[data-cosmic-theme="galaxy"] body::before { background: radial-gradient(ellipse at 71% 18%, rgba(170,118,255,.38) 0 3%, rgba(112,62,233,.16) 9%, transparent 23%), radial-gradient(ellipse at 67% 28%, rgba(76,170,255,.20), transparent 29%), radial-gradient(ellipse at 34% 72%, rgba(208,75,255,.17), transparent 25%), radial-gradient(circle at 14% 72%, rgba(43,114,255,.14), transparent 28%); animation: pt-galaxy-rotate 34s linear infinite; }
@@ -3143,9 +3146,158 @@ export const COSMIC_THEMES = {
     "secondary": "#71d5ff",
     "base": "#100614",
     "deep": "#03040b"
+  },
+  "aurora": {
+    "name": "Aurora Glass",
+    "accent": "#7CFFB2",
+    "secondary": "#6FD3FF",
+    "base": "#07131B",
+    "deep": "#02070B"
   }
 } as const;
 export type CosmicThemeId = keyof typeof COSMIC_THEMES;
+
+export const ADMIN_THEMES = {
+  professional: {
+    name: 'Professional HRIS',
+    description: 'Tampilan HRIS umum yang bersih, netral, formal, dan mudah dibaca.',
+    accent: '#2563EB',
+    secondary: '#0F766E',
+    base: '#F4F7FB',
+    deep: '#E9EEF5',
+  },
+} as const;
+export type AdminThemeId = keyof typeof ADMIN_THEMES;
+
+
+function adminThemeIs(value: unknown): value is AdminThemeId {
+  return value === 'professional';
+}
+
+function installAdminThemeOverrides(themeId: AdminThemeId): void {
+  if (typeof document === 'undefined') return;
+  const styleId = 'project-by-tirta-admin-theme-overrides';
+  let style = document.getElementById(styleId) as HTMLStyleElement | null;
+  if (!style) {
+    style = document.createElement('style');
+    style.id = styleId;
+    document.head.appendChild(style);
+  }
+  const vars = `
+    --mx-primary: #17345f;
+    --mx-primary-contrast: #ffffff;
+    --mx-accent: #2563eb;
+    --mx-background: #f4f7fb;
+    --mx-surface: #ffffff;
+    --mx-surface-alt: #eef3f9;
+    --mx-text: #1f2937;
+    --mx-text-secondary: #475569;
+    --mx-text-muted: #64748b;
+    --mx-border: #d9e2ec;
+    --mx-border-strong: #b8c7d9;
+    --mx-focus: #2563eb;
+    --mx-sidebar: #17345f;
+    --mx-sidebar-text: #ffffff;
+    --mx-sidebar-muted: #cbd7e8;
+    --mx-sidebar-active: #2563eb;
+    --mx-sidebar-active-text: #ffffff;
+    --app-primary: #17345f;
+    --app-primary-contrast: #ffffff;
+    --app-accent: #2563eb;
+    --app-bg: #f4f7fb;
+    --app-surface: #ffffff;
+    --app-surface-alt: #eef3f9;
+    --app-text: #1f2937;
+    --app-muted: #64748b;
+    --app-border: #d9e2ec;
+  `;
+  style.textContent = `
+    :root { ${vars} }
+    .admin-theme-professional { background: #2563EB !important; border-color: #2563EB !important; }
+    .theme-control-section { padding: 8px 10px 5px; color: #94a3b8; font-size: 9px; font-weight: 800; letter-spacing: .55px; text-transform: uppercase; border-top: 1px solid rgba(148,163,184,.18); margin-top: 4px; }
+    .theme-scope-badge { display: inline-block; margin-top: 6px; padding: 4px 7px; border-radius: 999px; background: rgba(37,99,235,.09); color: #2563eb; font-size: 9px; font-weight: 800; }
+    html[data-admin-theme="professional"] .theme-control-section { color: #64748b; border-top-color: #e2e8f0; }
+    html[data-admin-theme="professional"] .talenta-shell,
+    html[data-admin-theme="professional"] .talenta-main,
+    html[data-admin-theme="professional"] .admin-page-frame { background: var(--mx-background) !important; color: var(--mx-text) !important; background-image: none !important; }
+    html[data-admin-theme="professional"] .talenta-shell::before,
+    html[data-admin-theme="professional"] .talenta-shell::after,
+    html[data-admin-theme="professional"] .employee-portal-cosmic::before,
+    html[data-admin-theme="professional"] .employee-portal-cosmic::after { display: none !important; }
+    html[data-admin-theme="professional"] .sidebar,
+    html[data-admin-theme="professional"] .talenta-sidebar { background: linear-gradient(180deg,#17345f,#112a4e) !important; border-right: 1px solid #294b78 !important; color: #fff !important; }
+    html[data-admin-theme="professional"] .topbar { background: rgba(255,255,255,.96) !important; color: #1f2937 !important; border-bottom: 1px solid #d9e2ec !important; box-shadow: 0 1px 3px rgba(15,23,42,.06) !important; }
+    html[data-admin-theme="professional"] .nav-item { color: #dbe7f5 !important; }
+    html[data-admin-theme="professional"] .nav-item.active { background: #2563eb !important; color: #fff !important; border-color: #2563eb !important; box-shadow: 0 5px 16px rgba(37,99,235,.22) !important; }
+    html[data-admin-theme="professional"] .stat-card,
+    html[data-admin-theme="professional"] .panel,
+    html[data-admin-theme="professional"] .quick,
+    html[data-admin-theme="professional"] .form-panel,
+    html[data-admin-theme="professional"] .report-card,
+    html[data-admin-theme="professional"] .org-card,
+    html[data-admin-theme="professional"] .calendar-card,
+    html[data-admin-theme="professional"] .feature-card,
+    html[data-admin-theme="professional"] .setting-card,
+    html[data-admin-theme="professional"] .info-box,
+    html[data-admin-theme="professional"] .portal-card,
+    html[data-admin-theme="professional"] .theme-card,
+    html[data-admin-theme="professional"] .custom-theme-panel,
+    html[data-admin-theme="professional"] .export-card,
+    html[data-admin-theme="professional"] .detail-panel,
+    html[data-admin-theme="professional"] .table-card { background: #fff !important; color: #1f2937 !important; border-color: #d9e2ec !important; box-shadow: 0 8px 24px rgba(15,23,42,.06) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    html[data-admin-theme="professional"] .theme-card.active { border-color: #2563eb !important; box-shadow: 0 0 0 2px rgba(37,99,235,.14), 0 12px 26px rgba(15,23,42,.08) !important; }
+    html[data-admin-theme="professional"] .theme-preview { border: 1px solid #d9e2ec !important; }
+    html[data-admin-theme="professional"] input,
+    html[data-admin-theme="professional"] select,
+    html[data-admin-theme="professional"] textarea,
+    html[data-admin-theme="professional"] .search-global { background: #fff !important; color: #1f2937 !important; border-color: #cbd5e1 !important; }
+    html[data-admin-theme="professional"] button.primary,
+    html[data-admin-theme="professional"] .primary { background: #2563eb !important; border-color: #2563eb !important; color: #fff !important; }
+    html[data-admin-theme="professional"] .page-title,
+    html[data-admin-theme="professional"] .admin-page-frame h1,
+    html[data-admin-theme="professional"] .admin-page-frame h2,
+    html[data-admin-theme="professional"] .admin-page-frame h3,
+    html[data-admin-theme="professional"] .admin-page-frame strong,
+    html[data-admin-theme="professional"] .admin-page-frame label { color: #1f2937 !important; }
+    html[data-admin-theme="professional"] .admin-page-frame small,
+    html[data-admin-theme="professional"] .admin-page-frame p { color: #64748b !important; }
+    @media (prefers-reduced-motion: reduce) {
+      html[data-admin-theme="professional"] * { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    }
+  `;
+  void themeId;
+}
+
+export function getAdminTheme(): AdminThemeId | null {
+  if (typeof document !== 'undefined') {
+    const current = document.documentElement.dataset.adminTheme;
+    if (adminThemeIs(current)) return current;
+  }
+  return null;
+}
+
+export function applyAdminTheme(themeId: AdminThemeId, persist = true): void {
+  if (typeof document === 'undefined') return;
+  const theme = ADMIN_THEMES[themeId];
+  const root = document.documentElement;
+  delete root.dataset.cosmicTheme;
+  root.dataset.adminTheme = themeId;
+  root.style.setProperty('--pt-accent', theme.accent);
+  root.style.setProperty('--pt-accent-2', theme.secondary);
+  root.style.setProperty('--pt-bg-base', theme.base);
+  root.style.setProperty('--pt-bg-deep', theme.deep);
+  installAdminThemeOverrides(themeId);
+  // Persistence is account-scoped and handled by userPreferences; never use a global theme key here.
+  void persist;
+  window.dispatchEvent(new CustomEvent('project-tirta-admin-theme-change', { detail: themeId }));
+}
+
+export function clearAdminTheme(): void {
+  if (typeof document === 'undefined') return;
+  delete document.documentElement.dataset.adminTheme;
+  const style = document.getElementById('project-by-tirta-admin-theme-overrides');
+  style?.remove();
+}
 
 const THEME_STORAGE_KEY = 'project-tirta-cosmic-theme';
 
@@ -3325,6 +3477,7 @@ export function getCosmicTheme(): CosmicThemeId {
 
 export function applyCosmicTheme(themeId: CosmicThemeId, persist = true): void {
   if (typeof document === 'undefined') return;
+  clearAdminTheme();
   const theme = COSMIC_THEMES[themeId] ?? COSMIC_THEMES.sun;
   const root = document.documentElement;
   root.dataset.cosmicTheme = themeId;
@@ -3346,6 +3499,7 @@ export function applyCosmicTheme(themeId: CosmicThemeId, persist = true): void {
     galaxy: { background: '#160b31', text: '#fbf8ff', muted: '#ccbce7', activeText: '#180b29' },
     blackhole: { background: '#020408', text: '#f4f8fb', muted: '#a9bac4', activeText: '#07111f' },
     nebula: { background: '#240a2b', text: '#fff5fc', muted: '#d5bdd3', activeText: '#21091e' },
+    aurora: { background: '#061019', text: '#f3fffb', muted: '#9fc1bb', activeText: '#052012' },
   };
   const sidebar = sidebarColors[themeId];
   root.style.setProperty('--mx-sidebar', sidebar.background);
